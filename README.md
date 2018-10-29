@@ -1,2 +1,2 @@
 # mcd-molcas
-For calculating MCD spectra with OpenMolcas
+Tools for calculating MCD spectra with OpenMolcas
