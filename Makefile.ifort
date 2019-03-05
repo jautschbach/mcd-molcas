@@ -1,0 +1,68 @@
+#
+# This program may need lapack and blas routines
+#
+# For MPI support, we obviously also need the MPI libs and include files
+#
+# Note: we define two compiler variables: $FC for fixed format F77 or F90 and $FC90 for
+# free format F90
+
+
+### Fortran compiler
+FC     = ifort 
+FC90   = ifort 
+#FC     = gfortran
+#FC90   = gfortran
+
+LINKER = ifort
+#LINKER = gfortran
+
+### Disable/Enable OpenMP support
+#OMP = 
+OMP = -qopenmp -I${MKLROOT}/include
+
+### Compilation/Linking options
+FOPT = -C -g -traceback -fpe0 -check noarg_temp_created # ifort
+#FOPT = -g -fbounds-check # gfortran 
+
+### Extra libraries
+FLIB = -Wl,--start-group ${MKLROOT}/lib/intel64/libmkl_intel_lp64.a ${MKLROOT}/lib/intel64/libmkl_core.a ${MKLROOT}/lib/intel64/libmkl_sequential.a -Wl,--end-group -lpthread -lm -ldl
+#FLIB=-llapack
+
+FFLAGS = $(OMP)
+
+.SUFFIXES: .f .F .F90 .f90
+
+BIN = mcd-c-molcas plot-spectrum
+
+OBJ = 
+
+OBJ90 = definitions.o \
+        mcd-c-molcas.o \
+        print-rec-matrix.o \
+        diagonalize-matrix.o \
+        mat-tools.o \
+        text-tools.o \
+        nolib.o \
+        vector-product.o 
+
+
+.F.o:
+	$(FC) $(FOPT) -c $< -o $@
+.F90.o: 
+	$(FC90) $(FOPT) -c $< -o $@
+.f90.o: 
+	$(FC90) $(FOPT) -c $< -o $@
+
+all: $(BIN)
+
+mcd-c-molcas: $(OBJ) $(OBJ90)
+	$(LINKER) -o mcd-c-molcas $(OBJ) $(OBJ90) $(FFLAGS) $(FLIB)
+
+plot-spectrum: plot-spectrum.o
+	$(LINKER) -o plot-spectrum plot-spectrum.o $(FFLAGS) $(FLIB)
+
+clean:
+	rm -f $(BIN) *.o *.mod
+
+
+

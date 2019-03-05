@@ -1,0 +1,268 @@
+Calculation of MCD spectra based on a locally modified version of
+Molcas
+
+(c) Jochen Autschbach, University at Buffalo, SUNY
+
+This is an experimental code for research that comes with absolutely
+no warranty whatsoever, and it likely has some bugs. Use at your own
+risk.
+
+We cannot provide user support. However, if you found a bug please
+let us know.
+
+--------------------------------------------------------------------------------
+
+With the options described in the QUICK-USERS-GUIDE file,
+Molcas creates a set of files in a RASSI run:
+
+dipole-[1,2,3].txt
+angmom-[1,2,3].txt
+spin-[1,2,3].txt
+
+with complex dipole moment, angular momentum (not incl. -i factor) and
+spin matrices for the Cartesian laboratory coordinate axes x, y, z
+(i.e. index 1,2,3)
+
+we also need a file 'energies.txt' extracted from the RASSI output
+with the script molcas-get-energies.sh
+
+-------------------------------------------------------------------------------
+
+The mcd-X-molcas codes (X - a, b, or c) use these data to create A-,
+B-, and C-term data. Each of these codes reads a Fortran namelist
+input from the file
+
+mcd-options
+
+Example content of mcd-options (see the provided example(s)):
+
+&options degen = 2, temp = 5, nstates = 344,
+skip = 12, ddelta=1e-5, magdiag=.F. /
+
+The different options are as follows:
+
+nstates (integer): mandatory
+	
+  Number of states in the data files. This MUST be an exact
+  match. please check the data files to make sure the number of energies
+  and matrix elements corresponds exactly to this number of states, or
+  you will calculate garbage.
+
+  If you use the molcas-get-energies.sh, the output gives the number
+  of states in the first line. The spin, dipole, and angmom data files
+  must be generated from the same RASSI run used to extract the
+  energies. 
+
+  Use of symmetry is not explicitly supported, i.e. these should be
+  all energies and matrix elements for the full list of states you
+  want to include in the calculation. Obviously, the ordering of
+  states in the energies file and the matrix element data files must
+  also correspond to each other.
+
+
+states_sos (integer): optional
+
+  Number of sets of states in the sum-over-states(SOS) used to determine
+  the B-term. Degenate states are considered a single set of states. If this
+  term is omitted, all states are used. Does nothing for A- or C-term.
+
+temp (real): optional
+
+  Temperature in Kelvin. needed for C-term spectra.
+
+degen (integer): optional if ddelta > 0
+
+  Degeneracy of the ground state. if ddelta is > 0, this parameter can
+  be omitted or set to zero, and the programs will try to detect the
+  ground state degeneracy. For C-term spectra, the ground state must
+  be degenerate. 
+
+ddelta (real): optional if degen > 0
+
+  Criterion for the energy of two states to be considered equal. For
+  example, a value of 1e-5 means that if two states have energies
+  within 0.00001 atomic units from each other they will be grouped into
+  a degenerate level, and their energies will be averaged for this
+  level.
+
+  if ddelta is zero, this grouping will not be performed. In this
+  case, the value for degen must be specified and be > 0.
+
+  if you have some symmetry breaking in the wavefunctions, it may be
+  necessary to play with the value for ddelta in order to get the
+  desired grouping. 
+
+magdiag (logical): optional
+
+  Only used in the C-term codes. If set to .T., the ground state
+  components will be chosen to diagonalize the Zeeman Hamiltonian for
+  each magnetic field direction in turn. The default is .F., in which
+  case a C-term formula is used that does not require the zeroth-order
+  states to satisfy this criterion.
+
+usemag (logical): optional
+
+  Determines the MCD terms from the magnetic dipole rather than the
+  electronic dipole by replacing the dipole operator with the magnetic
+  operator the equations.  Usually negligible but may be significant
+  for dipole-forbidden transitions.
+
+skip (integer): optional
+
+  Skip a given number of lowest excited states above the ground level
+  when generating spectral data. This can be useful to remove low
+  energy transition from the plotted spectra.
+
+  The skip parameter refers to individual states, not grouped levels,
+  and starts counting with the state above the ground state
+  degeneracy. For example, for the example job UCl6(-) we have a
+  2-fold degenerate ground state and want to skip all 5f-5f
+  transition, so skip is set to 12.
+
+nospin (logical): optional
+
+  Spin is neglected when true. This is false by default.
+
+noangmom (logical): optional
+
+  Angular momentum is neglected when true. This is false by default.
+
+theta (logical): optional
+
+  Sets the theta option when creating mcdspectrum-X (X=0,1,2,3). Note
+  that theta in mcdspectrum-X can be altered after created. Whened
+  graphed with plot-spectrum, the units of the intesity will be
+  the molar ellipticity when true, but Delta epsilon when false
+
+-------------------------------------------------------------------------------
+
+The mcd-X-molcas codes write information to stdout. Make sure the
+energies are grouped as intended.
+
+The data files produced by each of these codes are called
+
+mcdspectrum-X, with X = 0,1,2,3
+
+1, 2, and 3 correspond to the MCD terms for a magnetic field in
+direction x, y, or z. The '0' spectrum contains the isotropic
+average, which is most likely what you want to use. For an octahedral
+complex, as in the UCl6(-) example, the 4 spectra are identical.
+
+-------------------------------------------------------------------------------
+
+The program 'plot-spectrum' reads one of the mcdspectrum-X files as stdin
+and produces data to make a plot of the spectrum.
+
+Example:
+
+plot-spectrum < mcdspectrum-0
+
+The mcdspectrum-X files contain the transition energies in
+wavenumbers, the A-, B-, or C-term data, and at the top a Fortran
+namelist input for plotspec such as
+
+&plot nsyme(1)=    109, ndegen(1)=1, sigma=1000, sharpen=1, npoints=300,
+ nexcit=    109, invert=.f., waveno=.t., term='C', temp=   5.00 /
+
+Depending on the state grouping and whether the ground state is
+degenerate or not, nsyme(1) and  nexcit may be equal to nstates-1 from
+the namelist input to mcd-X-molcas, or smaller. The two parameters
+must be equal and correspond to the number of calculated transitions
+between grouped ground state and excited state levels, minus any
+skipped low-energy states. It is determined automatically by
+mcd-X-molcas.
+
+term (character*1):
+
+  set to 'A', 'B', or 'C' for an A-, B-, or C-term spectrum. This
+  option is set automatically depending on which mcd-X-molcas code you
+  run.
+
+temp (real):
+
+  temperature, set automatically based on the value given in
+  mcd-options.
+
+sigma (real or integer):
+
+  Gaussian broadening in wavenumbers. This is the half width at 1/3
+  peak height. If set to 0, an empirical broadening will be used that
+  increases the broadening with sqrt(E). NOT TESTED, LET ME KNOW IF IT
+  DOES NOT WORK
+
+sharpen (real or integer):
+
+  if the empirical broadening is used, the sharpen parameter can be
+  useful to generate a sharper or broader spectrum if set to >1 or <1
+
+waveno (logical):
+
+  is .T., energies are in wavenumbers and will be converted internally
+  to atomic units
+
+nsyme, ndegen (integer):
+
+  currently not used. Would specify excitations with different
+  symmetries and degeneracies in the same input file.
+
+invert (logical):
+
+  if .T., the calculated spectrum will be inverted. This is useful for
+  natural optical activity if a calculation was done for the wrong 
+  enantiomer, but it should not be used for induced optical activity.
+
+npoints (integer):
+
+  number of energy grid points used to generate the plot of the
+  spectrum.
+
+--------------------------------------------------------------------------------
+
+The script graph-it.sh reads the two data files produced by plot-spectrum
+and generates a plot with gnuplot.
+
+One is the MCD spectrum, by default in Delta epsilon units per
+Tesla. A 'stick spectrum' with the A-, B-, or C-terms is also plotted
+in the same file. In this case, the MCD terms are in units of Debye**2
+for the electric transition dipole products, and atomic units
+otherwise.
+
+The MCD spectrum is on the left vertical scale (y1) and the stick
+spectrum is on the right vertical scale (y2). By default, the y1 and
+y2 axes are scaled as follows: y1 is chosen automatically, and the y2
+scale is 1/1000 of y1. This can be changed with the -s option. 
+
+graph-it.sh has several command line options. A plot title must be
+given after the options.
+
+graph-it.sh 'my-plot' will then generate an eps file my-plot-cm.sh
+with the spectrum on an inverse cm scale. It is better to avoid blanks
+in the plot title so that you don't generate files with blanks in
+their names. This is inconvenient on a Unix / Linux system. 
+
+graph-it.sh -y "C terms" -s 800 "ucl6-mcd" generates an eps file
+'ucl6-mcd-cm.eps' with a y2 label 'C terms' and a scaling of 1/800
+between y1 and y2.
+
+The other options are explained in the script.
+
+--------------------------------------------------------------------------------
+
+I suggest using a script to plot the spectra like this after running
+one of the mcd-X-molcas codes:
+
+rm -f graph.dat impulses.dat
+for i in 0 1 2 3; do
+  ~/code/mcd-c-molcas/plot-spectrum < mcdspectrum-$i
+  ~/code/mcd-c-molcas/graph-it.sh -y "C terms" -s 800 "ucl6-mcd-c-$i"
+  rm graph.dat impulses.dat
+done
+
+In order to add different types of spectra, e.g. for A- and B-terms,
+it is better to save the plotspec output files 'graph.dat' and
+'impulses.dat' and create a customized version of graph-it.sh that
+suits your needs. 
+
+
+
+

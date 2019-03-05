@@ -1,0 +1,122 @@
+####################################################################
+This file is meant as a quick start guide for new users of
+mcd-molcas.
+
+First, read the content of file README
+####################################################################
+
+
+
+############################
+#   Installing mcd-molcas  #
+############################
+
+1) Use git to copy the mcd-molcas repo from ccr:
+    Usage : git clone <USER-NAME>@transfer.ccr.buffalo.edu:/projects/academic/jochena/git/mcd-molcas
+
+2) Use Make. Type ‘make’ while in the root base directory for mcd-molcas.
+
+3) Place mcd-molcas base directory in your path.
+
+######################
+#RUNNING molcas-mcd  #
+######################
+
+Examples input and outputs are in mcd-molcas/examples/
+
+1) Run molcas normally, your SEWARD and RASSI inputs must include the following:
+
+In SEWARD:
+Angmom
+0.0 0.0 0.0
+AMFI
+
+In RASSI:
+SPIN
+MEES
+MESO
+PRPRint
+PROPerties
+6
+'AngMom' 1
+'AngMom' 2
+'AngMom' 3
+'MltPl  1' 1
+'MltPl  1' 2
+'MltPl  1' 3
+
+Save the following files produced due to the presence of the PRPRint
+keyword (along with the Molcas output file)
+
+dipole-X.txt
+angmom-X.txt
+spin-X.txt
+	X=1,2,3 where 1 is the X component,2 is the Y component, and 3 is the Z component 
+	
+2) Run molcas-get-energy.sh. 
+Usage: molcas-get-energies.sh <rassi.out
+
+   Output: energy.txt
+
+If the number of states in energy.txt does not match those output from
+the RASSI module then the string search in the script may need to be
+adapted. 
+
+
+3) Create a file mcd-options in your working directory and modify it
+   to include the correct number of spin-orbit states and set the
+   degenercy of your ground state. You Example mcd-option can be found
+   in mcd-molcas/examples nstates = <number of states> deg
+
+4)a) Get the A-terms. 
+     Usage: mcd-a-molcas
+  b) Get the B-terms.
+     Usage: mcd-b-molcas
+  c) Get the C-terms.
+     Make sure you are using the correct temperature in kelvin
+     (keyword: temp = <temperature in kelvin>)
+     Usage: mcd-c-molcas        
+
+  You will get the following output files:
+  
+  mcdspectrum-1 : mcd for the magnetic field oriented along the x-axis  
+  mcdspectrum-2 : mcd for the magnetic field oriented along the y-axis
+  mcdspectrum-3 : mcd for the magnetic field oriented along the z-axis
+  mcdspectrum-0 : rotationally averaged average mcd
+
+  These files have in lines 1 and 2 Fortran namelist inputs
+  for the program plot-spectrum used in step 5. The options are explained
+  in the source code plot-spectrum.F90 and in file README
+  
+  The most important parameter is 'sigma', which is the Gaussian
+  broadening parameter in wavenumbers. 
+
+5) run plot-spectrum to create a gaussian broadened spectrum.
+    Usage: plot-spectrum < mcdspectrum-x
+     x = 0,1,2,3 
+     Output : graph.dat : gaussian broadened spectrum
+ 	      impulse.dat: mcd-terms.
+
+	The graph.dat values are additive between the A/B/C MCD terms.
+
+   WARNING: if there are low lying states, the program tends to
+   produce funny results near zero frequency. In this case you may need
+   to adjust the energy window that the program ads around the highest
+   and lowest state.
+
+ Also, if there are a lot of states you may get numerical errors.
+
+ In these cases it may be better if you use a different program in order to
+ generate and plot the broadened mcd spectra. Same for step 6.
+
+6) Graph spectrum with graph-it.sh as an eps file (optional)
+    Usage graph-it.sh [-t] [-s <number>] [-r<number>][-y <label>][-m <number>] <output>
+       flags:
+        -t : spectrum in [theta] 
+        -s : scales of the broaden spectrum.
+        -r : scale MCD-term.
+        -y : custum label for MCD-term y-axis
+        -m : shifts spectrum
+
+   Use of this script requires Gnuplot (www.gnuplot.info)
+   
