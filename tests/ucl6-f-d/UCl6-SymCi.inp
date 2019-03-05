@@ -1,0 +1,129 @@
+&SEWARD  &END
+cholesky
+symmetry
+xyz
+Basis set
+U.ANO-RCC-VTZP
+U       0.000000000      0.000000000      0.000000000   angstrom
+End of basis
+Basis set
+Cl.ANO-RCC-VTZP
+Cl1      2.511196      0.000000      0.000000 angstrom
+Cl2      0.000000      2.511196      0.000000 angstrom
+Cl3      0.000000      0.000000      2.511196 angstrom
+end of basis
+Angmom
+0.0 0.0 0.0
+AMFI
+End of input
+
+&SCF &END
+charge
+0
+PRORbitals
+2 4. 2
+*lumorb
+End of input
+
+
+>> COPY $Project.ScfOrb INPORB
+
+&RASSCF &END
+Spin
+2    
+Symmetry
+2   
+nActEl
+1 0 1
+Inactive
+48 49
+Ras2
+0 7              
+RAS3
+5 0
+CIRoots
+7 7  1
+Iter
+100 100
+LumOrb
+orbappear
+compact
+orblisting
+all
+outorbitals
+canonical
+levshift
+1.0
+MAXORb
+2
+ALTER
+1
+1 54 52
+End of input
+
+>> COPY $Project.RasOrb $Project.LFStates.RasOrb
+>> COPY $Project.JobIph $Project.LFStates.JobIph
+
+>> COPY $Project.LFStates.RasOrb INPORB
+
+&RASSCF &END          
+Spin                  
+2                     
+Symmetry              
+1                     
+nActEl                
+1 0 1                 
+Inactive              
+48 49                 
+Ras2                  
+0 7                   
+RAS3                  
+5 0                   
+CIRoots               
+5 5  1                
+Iter                  
+100 100               
+LumOrb                
+orbappear             
+compact               
+orblisting            
+all                   
+outorbitals           
+canonical             
+levshift              
+1.0                   
+MAXORb                
+2                                    
+End of input          
+
+                                                    
+>> COPY $Project.RasOrb $Project.6DStates.RasOrb   
+>> COPY $Project.JobIph $Project.6DStates.JobIph   
+
+>> COPY $Project.LFStates.JobIph JOB001
+>> COPY $Project.6DStates.JobIph JOB002
+
+&RASSI &END  
+NrofJobIphs
+2 7 5
+1 2 3 4 5 6 7
+1 2 3 4 5
+EJOB
+SPIN
+*Print
+* 2 soeig 4 prcevc 4
+MEES
+MESO
+PRPRint
+EPRG  
+1.0
+PROPerties
+7
+'AngMom' 1
+'AngMom' 2
+'AngMom' 3
+'Mltpl  0' 1
+'MltPl  1' 1
+'MltPl  1' 2
+'MltPl  1' 3
+end of input
