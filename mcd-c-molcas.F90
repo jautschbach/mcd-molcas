@@ -707,19 +707,23 @@ contains
 
     call diagonalize_matrix (degen, eigv)
 
-    allocate(tmpmat1(degen, degen), tmpmat2(degen, degen))
-
+    allocate(tmpmat1(degen, degen))
     tmpmat1 = transpose(conjg(eigv))
 
-    tmpmat2 = matmul(tmpmat1, magdip(:,:,idir))
-    magdip(:,:,idir) = matmul(tmpmat2, eigv)
-
+    ! transform the relevant blocks of the magnetic dipole matrix
+    allocate(tmpmat2(degen, nstates))    
+    tmpmat2 = matmul(tmpmat1, magdip(1:degen,:,idir))
+    magdip(1:degen,:, idir) = tmpmat2
+    deallocate (tmpmat2)
+    allocate (tmpmat2(nstates, degen))
+    tmpmat2 = matmul(magdip(:, 1:degen, idir), eigv)
+    magdip(:, 1:degen, idir) = tmpmat2(:, 1:degen)
     deallocate (tmpmat2)
 
-    call print_rec_matrix(out, degen, real(magdip(:,:,idir)),&
+    call print_rec_matrix(out, degen, real(magdip(1:degen,1:degen,idir)),&
       & 'Transformed Zeeman Hamiltonian REAL part')
 
-    call print_rec_matrix(out, degen, aimag(magdip(:,:,idir)),&
+    call print_rec_matrix(out, degen, aimag(magdip(1:degen,1:degen,idir)),&
       & 'Transformed Zeeman Hamiltonian IMAG part')
 
     ! -------------------------------------------------------
