@@ -47,8 +47,8 @@ program mcd_c_molcas
 
   integer(KINT), dimension(:), allocatable :: deglist, levels, accl
   
-  complex(KREAL), dimension(:,:,:), allocatable :: magdip, eldip, spin, &
-    eldip_mag(:,:,:), angmom(:,:,:)
+  complex(KREAL), dimension(:,:,:), allocatable :: magdip, eldip, &
+    eldip_mag, angmom
   
   complex(KREAL), dimension(:,:), allocatable :: eigv, tmpmat1, tmpmat2, d_tmp
 
@@ -237,25 +237,37 @@ program mcd_c_molcas
   ! allocate some more arrays
   
   allocate (eldip(nstates,nstates,3))
-  allocate (magdip(degen,degen,3))
+  allocate (magdip(nstates,nstates,3))
   ! allocate (d_tmp(3,degen))
-  
-  magdip = 0
 
+  ! ------------------------------------------------------------
+  ! assume that we have spin or angular momentum matrices,
+  ! assemble the magnetic moment operator matrix elements as
+  ! (L_u + 2 S_u), with dimensionless angular momentum operators
+  ! and we exclude the factor -e\hbar / (2 m_e) = -1/2 au.
+  ! with that, the magnetic moment is defined the same as in
+  ! Piepho & Schatz. We'l keep that in mind further below.
+  ! ------------------------------------------------------------  
   
-  ! -------------------------------------------------------
-  ! assume that we have spin and angular momentum matrices.
-  ! assemble the magnetic moment operator from those.
-  ! -------------------------------------------------------
+  ! sanity check for options:
   
+  if (.not.( &
+    (havespin .and. haveang) .or. &
+    (havespin .and. .not.haveang) .or. &
+    (.not.havespin .and. haveang))) then
+    stop 'option combination in magnetic moment assembly not allowed'
+  end if
+
+  magdip = 0
   
-  allocate (spin(nstates,nstates,3), angmom(nstates,nstates,3))
+  allocate (angmom(nstates,nstates,3))
+
   
   ! ----------------------------------------------------
   ! read the electron spin matrices in a loop over x, y, z
   ! ----------------------------------------------------
   
-  spin = 0
+  angmom = 0
   
   do idir = 1, 3
     
@@ -275,9 +287,9 @@ program mcd_c_molcas
         read (iu_d,*, iostat=ios) idum, jdum, ctemp(1:2)
         if (dbg>2) write (out,*) i, j, ctemp(1), ctemp(2)
         if (idir.ne.2) then
-          spin(i,j,idir) = cmplx (ctemp(1), ctemp(2), kind(KREAL))
+          angmom(i,j,idir) = cmplx (ctemp(1), ctemp(2), kind(KREAL))
         else
-          spin(i,j,idir) = cmplx (-ctemp(2), ctemp(1), kind(KREAL))
+          angmom(i,j,idir) = cmplx (-ctemp(2), ctemp(1), kind(KREAL))
         end if
         if (ios /= 0) then
           write (err,*) 'idir, i, j = ', idir, i, j
@@ -288,6 +300,8 @@ program mcd_c_molcas
     end do ! j
     
     close (iu_d)
+
+    magdip = ge * angmom ! spin contribution to magnetic moment
     
   end do ! idir = spin components
   
@@ -298,146 +312,115 @@ program mcd_c_molcas
   ! ----------------------------------------------------
   
   angmom = 0
-  
-  do idir = 1, 3
-    
-    write (cs,'(a,i1,a)') 'angmom-',idir,'.txt'
-    
-    open(unit=iu_d, file=trim(cs), status='old', iostat=ios)
-    if (ios /= 0) then
-      write (err,*) 'error: file '//trim(cs)//' does not exist'
-      stop 'error termination'
-    end if
-    
-    read(iu_d,*) cstemp
-    
-    ! n.b. inner loop must be the row index
-    do j = 1, nstates
-      do i = 1, nstates
-        read (iu_d,*, iostat=ios) idum, jdum, ctemp(1:2)
-        if (dbg>2) write (out,*) i, j, ctemp(1), ctemp(2)
-        ! angmom is -Im, Re in Molcas, missing a factor of -i
-        angmom(i,j,idir) = cmplx (-ctemp(2), ctemp(1), kind(KREAL))
-        if (ios /= 0) then
-          write (err,*) 'idir, i, j = ', idir, i, j
-          write (err,*) 'error reading angmom value from '//trim(cs)
-          stop 'error termination'
-        end if
-      end do ! i
-    end do ! j
-    
-    close (iu_d)
-    
-  end do ! idir = angular momentum components
-  
-  write (out,'(1x,a/)') 'successfully read angular momentum data files'
 
-  ! -----------------------------------------------------------
-  ! We use the Piepho & Schatz unit conventions, so the magnetic
-  ! matrix elements we need are (L_u + 2 S_u), or use g_e S_u
-  ! -----------------------------------------------------------
+  if (haveang) then
+    
+    do idir = 1, 3
+      
+      write (cs,'(a,i1,a)') 'angmom-',idir,'.txt'
+      
+      open(unit=iu_d, file=trim(cs), status='old', iostat=ios)
+      if (ios /= 0) then
+        write (err,*) 'error: file '//trim(cs)//' does not exist'
+        stop 'error termination'
+      end if
+      
+      read(iu_d,*) cstemp
+      
+      ! n.b. inner loop must be the row index
+      do j = 1, nstates
+        do i = 1, nstates
+          read (iu_d,*, iostat=ios) idum, jdum, ctemp(1:2)
+          if (dbg>2) write (out,*) i, j, ctemp(1), ctemp(2)
+          ! angmom is -Im, Re in Molcas, missing a factor of -i
+          angmom(i,j,idir) = cmplx (-ctemp(2), ctemp(1), kind(KREAL))
+          if (ios /= 0) then
+            write (err,*) 'idir, i, j = ', idir, i, j
+            write (err,*) 'error reading angmom value from '//trim(cs)
+            stop 'error termination'
+          end if
+        end do ! i
+      end do ! j
+      
+      close (iu_d)
+      
+    end do ! idir = angular momentum components
+    
+    write (out,'(1x,a/)') 'successfully read angular momentum data files'
+
+    magdip = magdip + angmom ! add orbital angular momentum to magnetic moment
+
+  end if ! haveang
+
+  ! memory deallocations:
   
-  do idir = 1,3
-     do i = 1,degen
-        do j = 1,degen
-           if (havespin .and. haveang) then
-          magdip(i,j,idir) = one* ( &
-            angmom(i,j,idir) + ge * spin(i,j,idir) )
-        else if (havespin .and. .not.haveang) then
-          magdip(i,j,idir) = one* ( &
-            ge * spin(i,j,idir) )
-        else if (.not.havespin .and. haveang) then
-          magdip(i,j,idir) = one* ( &
-            angmom(i,j,idir)  )
-        else
-          stop 'option combination in magnetic moment assembly not allowed'
-        end if
-      end do
-    end do
-  end do
+  deallocate (angmom)
+
 
   ! ----------------------------------------------------
   ! read the electric (or magnetic) dipole data in a loop over x, y, z
-  ! and convert to Debye units
   ! ----------------------------------------------------
 
   eldip = 0
 
   do idir = 1, 3
 
-
-     if (usemag) then
-        !Use the magnetic moment for the dipole
-        do j = 1, nstates
-           do i = 1, nstates
-              if (havespin .and. haveang) then
-                 eldip(i,j,idir) = -(half/cspeed)*( &
-                      angmom(i,j,idir) + ge * spin(i,j,idir) )
-              else if (havespin .and. .not.haveang) then
-                 eldip(i,j,idir) = -(half/cspeed)* ( &
-                      ge * spin(i,j,idir) )
-              else if (.not.havespin .and. haveang) then
-                 eldip(i,j,idir) = -(half/cspeed)* ( &
-                      angmom(i,j,idir)  )        
-              end if
-           end do
-        end do
-     else
-
-        write (cs,'(a,i1,a)') 'dipole-',idir,'.txt'
-        
-        open(unit=iu_d, file=trim(cs), status='old', iostat=ios)
-        if (ios /= 0) then
-           write (err,*) 'error: file '//trim(cs)//' does not exist'
-           stop 'error termination'
-        end if
-
-        read(iu_d,*) cstemp
-        
-        ! n.b. inner loop must be the row index
-        do j = 1, nstates
-           do i = 1, nstates
-              read (iu_d,*, iostat=ios) idum, jdum, ctemp(1:2)
-              !read (iu_d,'(I4,I4,1x,E25.16,1x,E25.16)', iostat=ios) & 
-              !  idum, jdum, ctemp(1), ctemp(2)
-              if (dbg>2) write (out,*) i, j, ctemp(1), ctemp(2)
-              eldip(i,j,idir) = cmplx (ctemp(1), ctemp(2), kind(KREAL))
-              if (ios /= 0) then
-                 write (err,*) 'idir, i, j = ', idir, i, j
-                 write (err,*) 'error reading dipole value from '//trim(cs)
-                 stop 'error termination'
-              end if
-           end do ! i
-        end do ! j
-
-
-        close (iu_d)
-     end if
-     
+    if (usemag) then
+      !Use the magnetic moment in place of the electric dipole.
+      ! undocumented feature.
+      
+      eldip(:,:,idir) = -(half/cspeed)*magdip(:,:,idir)
+      
+    else
+      
+      write (cs,'(a,i1,a)') 'dipole-',idir,'.txt'
+      
+      open(unit=iu_d, file=trim(cs), status='old', iostat=ios)
+      if (ios /= 0) then
+        write (err,*) 'error: file '//trim(cs)//' does not exist'
+        stop 'error termination'
+      end if
+      
+      read(iu_d,*) cstemp
+      
+      ! n.b. inner loop must be the row index
+      do j = 1, nstates
+        do i = 1, nstates
+          read (iu_d,*, iostat=ios) idum, jdum, ctemp(1:2)
+          !read (iu_d,'(I4,I4,1x,E25.16,1x,E25.16)', iostat=ios) & 
+          !  idum, jdum, ctemp(1), ctemp(2)
+          if (dbg>2) write (out,*) i, j, ctemp(1), ctemp(2)
+          eldip(i,j,idir) = cmplx (ctemp(1), ctemp(2), kind(KREAL))
+          if (ios /= 0) then
+            write (err,*) 'idir, i, j = ', idir, i, j
+            write (err,*) 'error reading dipole value from '//trim(cs)
+            stop 'error termination'
+          end if
+        end do ! i
+      end do ! j
+      
+      
+      close (iu_d)
+    end if
+    
   end do ! idir = electric dipole components
 
   write (out,'(1x,a/)') 'successfully read electric dipole data files'
 
-  ! print the assembled data, if requested. For the magnetic dipole, we
-  ! use array angmom and add the spin
+  ! print the assembled data, if requested, without -1 factors
 
   if (print_m) then
-    write (out,'(/1x,a/)') 'magnetic dipole moment matrix elements (x,y,z)'
-    if (havespin .and. haveang) then
-      angmom = angmom + ge * spin
-    else if (havespin .and. .not.haveang) then
-      angmom = ge * spin
-    end if
+    write (out,'(/1x,a/)') 'magnetic dipole moment matrix elements in au (x,y,z)'
     do i = 1,nstates
       do j = 1,nstates
         write (out,'(i5,1x,i5,1x,3("("F15.10,SP,F15.10,"i)"))') i,j, &
-          half*angmom(i,j,1:3)
+          half*magdip(i,j,1:3)
       end do
     end do
   end if ! print_m
 
   if (print_d) then
-    write (out,'(/1x,a/)') 'electric dipole moment matrix elements (x,y,z)'
+    write (out,'(/1x,a/)') 'electric dipole moment matrix elements in au (x,y,z)'
     do i = 1,nstates
       do j = 1,nstates
         write (out,'(i5,1x,i5,1x,3("("F15.10,SP,F15.10,"i)"))') i,j, &
@@ -446,9 +429,7 @@ program mcd_c_molcas
     end do
   end if ! print_d
   
-  ! memory de/allocations:
-  
-  deallocate (angmom, spin)
+  ! memory allocations:
   
   allocate (eldip_mag(nstates,nstates,3))
   allocate (d_tmp(3,degen))
@@ -703,7 +684,8 @@ contains
     ! upon return, the input matrix is replaced with the
     ! eigenvectors
 
-    eigv(:,:) = magdip(:,:,idir)
+    eigv = 0
+    eigv(1:degen,1:degen) = magdip(1:degen,1:degen,idir)
 
     call diagonalize_matrix (degen, eigv)
 
