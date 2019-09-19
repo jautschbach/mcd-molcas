@@ -19,6 +19,8 @@ program mcd_c_molcas
   ! 'mcd-options'. For details see the code & comments below.
 
   use definitions
+
+  use namelist_module
   
   implicit none
 
@@ -72,18 +74,9 @@ program mcd_c_molcas
   data iu_mcd(0), iu_mcd(1), iu_mcd(2), iu_mcd(3) /10, 11, 12, 13/
 
   real(KREAL) :: deltae, rtemp, ctemp(2), kT
-  integer(KINT) :: ntemp
+  integer(KINT) :: ntemp, skip1
   complex(KREAL) :: ct, cttmp, prefac, vec(3,3)
   logical havespin, haveang
-  
-  ! namelist variables:
-  
-  real(KREAL) :: temp, ddelta
-  integer(KINT) :: degen, nstates, nlevels, skip, skip1, &
-    states_sos
-  logical :: magdiag, nospin, noangmom, print_d, print_m, theta, usemag 
-  namelist /options/ degen, temp, nstates, skip, magdiag, ddelta, &
-    nospin, noangmom, print_d, print_m, theta, states_sos, usemag
 
   ! in-line functions
 
@@ -96,13 +89,14 @@ program mcd_c_molcas
 
   dbg = 1
 
-  ! define if we have spin matrices and angmom available
+  ! N.B. the namelist variables set below are defined in namelist-module.F90
+  
+  ! define if we have spin matrices and angmom and quadrupoles available
 
   nospin    = .false. 
   noangmom  = .false.
+  noquad    = .true.
   
-
-
   print_d = .false. ! options for printing detailed data
   print_m = .false. ! for analysis purposes
 

@@ -1,0 +1,12 @@
+*.o
+*.mod
+*~
+lala*
+graph.dat
+impulses.dat
+plot-spectrum
+mcd-c-molcas
+mcd-a-molcas
+mcd-b-molcas
+mchd-c-molcas
+tests/*-temp

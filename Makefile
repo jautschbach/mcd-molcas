@@ -26,11 +26,12 @@ FFLAGS = $(OMP)
 
 .SUFFIXES: .f .F .F90 .f90
 
-BIN = mcd-c-molcas mcd-a-molcas mcd-b-molcas plot-spectrum
+BIN = mcd-c-molcas mchd-c-molcas mcd-a-molcas mcd-b-molcas plot-spectrum
 
 OBJ = 
 
 OBJ90 = definitions.o \
+        namelist-module.o \
         print-rec-matrix.o \
         diagonalize-matrix.o \
         vector-product.o \
@@ -54,6 +55,9 @@ mcd-a-molcas: $(OBJ) $(OBJ90) mcd-a-molcas.o
 
 mcd-b-molcas: $(OBJ) $(OBJ90) mcd-b-molcas.o
 	$(LINKER) -o mcd-b-molcas mcd-b-molcas.o $(OBJ) $(OBJ90) $(FFLAGS) $(FLIB)
+
+mchd-c-molcas: $(OBJ) $(OBJ90) mchd-c-molcas.o
+	$(LINKER) -o mchd-c-molcas mchd-c-molcas.o $(OBJ) $(OBJ90) $(FFLAGS) $(FLIB)
 
 plot-spectrum: plot-spectrum.o
 	$(LINKER) -o plot-spectrum plot-spectrum.o $(FFLAGS) $(FLIB)

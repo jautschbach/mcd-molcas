@@ -1,6 +1,8 @@
 subroutine process_energies (iu_e, out, nstates, nlevels, do_group, &
-  ddelta, skip, degen, energy, elevel, &
-  deglist, levels, accl)
+  ddelta, skip, degen, energy, elevel, deglist, levels, accl)
+
+  ! read a list of energies from a file, and group the energies into
+  ! levels, if requested
 
   use definitions
 

@@ -1,6 +1,9 @@
 #include "config.h"
 module definitions
 
+  implicit none
+
+  ! define the byte length of integer and real variables:
   integer, parameter       :: KINT = D_INTEGERKIND
   integer(KINT), parameter :: KREAL = D_REALKIND
   integer(KINT), parameter :: LCHARS = 160
