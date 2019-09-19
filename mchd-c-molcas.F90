@@ -33,6 +33,7 @@ program mchd_c_molcas
   real(KREAL), parameter :: two=2.0_KREAL
   real(KREAL), parameter :: three=3.0_KREAL
   real(KREAL), parameter :: half=0.5_KREAL
+  real(KREAL), parameter :: fourth=0.25_KREAL
   real(KREAL), parameter :: oneby15=(one/15.0_KREAL)
   real(KREAL), parameter :: small=1.0E-5_KREAL
   real(KREAL), parameter :: tiny=1E-10_KREAL
@@ -687,6 +688,14 @@ program mchd_c_molcas
           
           if (is1.gt.nstates .or. is1.lt.1) &
             stop 'is1 out of bounds'
+
+          ! Note: We have a combo of
+          ! three electron transition moments, and none of them contains the -e
+          ! = -1 au factor that is present in all of the operators. Moreover,
+          ! the magnetic moment operator is missing the 1/2 from the Bohr
+          ! magneton. I.e. the correct result in atomic units requires an
+          ! additional factor -1/4 for C(G) and -1/2 for C(A).
+          ! We apply these factors below when calculating cg and ca
           
           if (magdiag) then
             
@@ -699,7 +708,7 @@ program mchd_c_molcas
                 ctmp = preg * lc(jdir,kdir,idir) * &
                   magdip_mag(is1,is1,idir) * &
                   eldip_mag(is1,js1,jdir) * magdip_mag(js1,is1,kdir)
-                cg = cg + ctmp
+                cg = cg - fourth * ctmp
               end do
             end do
 
@@ -711,7 +720,7 @@ program mchd_c_molcas
                 elquad_mag(js1,is1,qindex(jdir,idir)) - &
                 eldip_mag(is1,js1,idir) * &
                 elquad_mag(js1,is1,qindex(jdir,jdir)) )
-              ca = ca + ctmp
+              ca = ca - half *ctmp
             end do ! jdir
             
           else
@@ -732,7 +741,7 @@ program mchd_c_molcas
                   ctmp = preg * lc(jdir,kdir,idir) * &
                     magdip_mag(is2,is1,idir) * &
                     eldip_mag(is1,js1,jdir) * magdip_mag(js1,is2,kdir)
-                  cg = cg + ctmp
+                  cg = cg - fourth * ctmp
                 end do
               end do
               
@@ -744,7 +753,7 @@ program mchd_c_molcas
                   elquad_mag(js1,is2,qindex(jdir,idir)) - &
                   eldip_mag(is1,js1,idir) * &
                   elquad_mag(js1,is2,qindex(jdir,jdir)) )
-                ca = ca + ctmp
+                ca = ca - half * ctmp
               end do ! jdir
               
             end do ! i2
