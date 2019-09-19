@@ -51,8 +51,6 @@ program mcd_a_molcas
   complex(KREAL), dimension(:,:,:), allocatable :: magdip, eldip, spin, &
     eldip_mag(:,:,:), angmom(:,:,:)
   
-  complex(KREAL), dimension(:,:), allocatable :: eigv, tmpmat1, tmpmat2
-
   complex(KREAL), dimension(:), allocatable :: ctav, clist
 
   ! other variables:
@@ -99,11 +97,10 @@ program mcd_a_molcas
   print_d = .false. ! options for printing detailed data
   print_m = .false. ! for analysis purposes
 
-  magdiag = .false. ! the original version of this code required a
-  ! diagonalization of the magnetic moment operator in the basis of 
-  ! the degenerate ground state components.
-  ! The default is now to use the equations from Piepho & Schatz, pp.
-  ! 84 - 86, which bypass that diagonalization.
+  magdiag = .false. ! 
+  ! We use the equations from Piepho & Schatz, pp.
+  ! 84 - 86, which do not require that degenerate states diagonalize
+  ! the Zeeman operator. The option is ignored in this code even if T
 
   ! default delta criterion for degeneracy, in au
   ddelta = 1E-5_KREAL
@@ -403,8 +400,6 @@ program mcd_a_molcas
   deallocate (angmom, spin)
   allocate (ctav(nlevels), clist(nlevels), oscil(nlevels))
   allocate (eldip_mag(nstates,nstates,3))
-  allocate (eigv(nstates,nstates))
-
 
   ! ------------------
   ! A-term computation
@@ -462,13 +457,6 @@ program mcd_a_molcas
       & 'The data will be written to file '//trim(mcdfile(idir))
     
     eldip_mag = eldip
-    
-    ! use old code if magdiag is set:
-    
-    if (magdiag) then
-      call diagonalize_magdip
-      write (out,'(1x,a/)') 'States now diagonalize Zeeman operator'
-    end if ! magdiag
     
     clist(:) = cmplx(zero, zero, kind(KREAL)) ! A-term
     
@@ -605,67 +593,10 @@ program mcd_a_molcas
   ! --------------------------------------------------
 
   deallocate(energy, eldip, magdip, ctav, oscil, &
-    deglist, clist, levels, elevel, accl, eldip_mag, eigv)
+    deglist, clist, levels, elevel, accl, eldip_mag)
 
   stop 'normal termination of mcd'
   
   ! ============================================================================
 
-contains
-  
-  subroutine diagonalize_magdip
-
-    ! -------------------------------------------------
-    ! diagonalize the Zeeman Hamiltonian component idir
-    ! -------------------------------------------------
-
-    ! the next call uses the complex lapack routine zheevd.
-    ! upon return, the input matrix is replaced with the
-    ! eigenvectors
-
-    eigv(:,:) = magdip(:,:,idir)
-
-    call diagonalize_matrix (degen, eigv)
-
-    allocate(tmpmat1(nstates,nstates), tmpmat2(nstates,nstates))
-
-    tmpmat1 = transpose(conjg(eigv))
-
-    tmpmat2 = matmul(tmpmat1, magdip(:,:,idir))
-    magdip(:,:,idir) = matmul(tmpmat2, eigv)
-
-!!$    call print_rec_matrix(out, degen, real(magdip(:,:,idir)),&
-!!$      & 'Transformed Zeeman Hamiltonian REAL part')
-!!$
-!!$    call print_rec_matrix(out, degen, aimag(magdip(:,:,idir)),&
-!!$      & 'Transformed Zeeman Hamiltonian IMAG part')
-!!$
-!!$    if (dbg>2) then
-!!$
-!!$      call moutr (real(eldip(1:20,1:20,idir)), 20, 20, 'R',&
-!!$       & 'UNTransformed el-dipole matrix REAL part')
-!!$     call moutr (aimag(eldip(1:20,1:20,idir)), 20, 20, 'R',&
-!!$       & 'UNTransformed el-dipole matrix IMAG part')
-!!$
-!!$    end if
-
-    ! ------------------------------------------------
-    ! transform the dipole matrix elements accordingly
-    ! ------------------------------------------------
-
-    do jdir = 1,3
-      
-      tmpmat1 = transpose(conjg(eigv))
-      
-      tmpmat2 = matmul(tmpmat1, eldip_mag(:,:,jdir))
-
-      eldip_mag(:,:, jdir) = matmul(tmpmat2, eigv)
-
-    end do ! jdir
-
-    deallocate (tmpmat1, tmpmat2)
-
-  end subroutine diagonalize_magdip
-  
-  
 end program mcd_a_molcas

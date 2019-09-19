@@ -100,11 +100,11 @@ program mcd_b_molcas
   print_d = .false. ! options for printing detailed data
   print_m = .false. ! for analysis purposes
 
-  magdiag = .false. ! the original version of this code required a
-  ! diagonalization of the magnetic moment operator in the basis of 
-  ! the degenerate ground state components.
-  ! The default is now to use the equations from Piepho & Schatz, pp.
-  ! 84 - 86, which bypass that diagonalization.
+  magdiag = .false. 
+  ! We use the equations from Piepho & Schatz, pp.
+  ! 84 - 86, which do not require that degenerate states diagonalize
+  ! the Zeeman operator. The option is ignored in this code even if T
+
 
   usemag = .false. ! determines the B-term by replacing the electronic dipole with the magnetic dipole.
   !The contribution of the magetic dipole is usually negectable. This has been implemented for all terms
