@@ -45,7 +45,8 @@ program mchd_c_molcas
   real(KREAL), parameter :: aucm=2.194746313705E+5_KREAL ! au -> cm**(-1)
   real(KREAL), parameter :: boltzcm=0.69503457_KREAL    ! cm**(-1) / K
   real(KREAL), parameter :: thunit=5.02883E5_KREAL      ! C -> [theta]
-  real(KREAL), parameter :: cspeed=137.035999_KREAL     ! speed of light in a.u. 
+  real(KREAL), parameter :: cspeed=137.035999_KREAL     ! speed of light in a.u.
+  real(KREAL), parameter :: csq = cspeed*cspeed         ! c**2
 
   ! allocatable arrays:
   
@@ -559,11 +560,21 @@ program mchd_c_molcas
   write (out,'(//1x,40(''-'')/1x,a/)') &
     'C-term calculation'
 
-  ! the prefactor for the C(G)-term is 1/(degeneracy of ground state)
+  ! the prefactor for the C(G)-term is 1/(degeneracy of ground state GS)
+  ! the prefactor for the C(A)-term is omega/(15 times degeneracy of GS)
+  ! We do NOT include the omega here in C(A).
+  ! Also, THE C TERMA ARE MULTIPLIED BY c**2 TO AVOID LOSS OF
+  ! PRECISION IN THE PRINTED RESULTS. Consider this as absorbing a
+  ! mu0/(4pi) from the intensity in the terms
   preg = cmplx(one, zero, kind(KREAL)) / (degen)
-  if (dbg>1) write (out,*) 'preg = ', preg
+  rtemp = oneby15
+  prea = cmplx(rtemp, zero, kind(KREAL)) / (degen)
+  preg = preg * csq ! here is the c**2 factor
+  prea = prea * csq
+  if (dbg>0) write (out,*) 'preg, prea = ', preg, prea
   
   cgav(:) = cmplx(zero, zero, kind(KREAL)) ! isotropic C(G)-term
+  caav(:) = cmplx(zero, zero, kind(KREAL)) ! isotropic C(A)-term
 
   ! create output files, open, and write namelist
   ! input for plot program
@@ -580,12 +591,14 @@ program mchd_c_molcas
     ntemp = nlevels - skip - 1
     !write (out,*) 'ntemp, nlevels, skip', ntemp, nlevels, skip
     if (ntemp.lt.1) stop 'attempting to print data for less than 1 level'
-        write(iu_mcd(idir),'(a,i7,a/1x,a,i7,a,f7.2,a,l,a///a)') &
-      '&plot nsyme(1)=',ntemp, &
+        write(iu_mcd(idir),'(a,i7,a/,a,i7,a,f7.2,a,l,a/a/a/a)') &
+      '# &plot nsyme(1)=',ntemp, &
       ', ndegen(1)=1, sigma=1000, sharpen=1, npoints=300,', &
-      'nexcit=',ntemp,', invert=F, waveno=T, term=''C'', temp=',temp,&
+      '# nexcit=',ntemp,', invert=F, waveno=T, term=''C'', temp=',temp,&
       ', theta=',theta,' /', &
-      '#  E(cm**-1), Re-C (G), Re-C(A), Im-C(G), Im-C(A)'
+      '# the last 2 columns should be zero and are printed for debug purposes', &
+      '# all C terms contain a factor c**2 to avoid loss of printed precision', &
+      '#  E(cm**-1), Re-C(G), Im-C(A'')/omega, Im-C(G)/omega, Re-C(A'')'
 
   end do ! idir
   
@@ -632,6 +645,7 @@ program mchd_c_molcas
     end if ! magdiag
     
     cglist(:) = cmplx(zero, zero, kind(KREAL)) ! C(G) terms
+    calist(:) = cmplx(zero, zero, kind(KREAL)) ! C(A) terms
     
     if (skip > 0) then
       write (out,'(1x,a,1x,i7,1x,a/)') 'The lowest',skip,'excited levels&
@@ -663,14 +677,6 @@ program mchd_c_molcas
       do j1 = 1,levels(jlevel)
         
         js1 = accl(jlevel) + j1 ! refers to un-grouped set of states
-
-        ! the prefactor for the C(A)-term is
-        ! omega/(15 times degeneracy of ground state)
-        ! We use for omega the excitation energy
-
-        rtemp = oneby15*elevel(jlevel)
-        prea = cmplx(rtemp, zero, kind(KREAL)) / (degen)
-        if (dbg>1) write (out,*) 'prea = ', prea
         
         if (js1.gt.nstates .or. js1.lt.1) &
           stop 'js1 out of bounds'                                   
@@ -782,8 +788,9 @@ program mchd_c_molcas
     do ilevel = 2+skip,nlevels
       deltae = elevel(ilevel) - elevel(1)
       write (iu_mcd(idir),'(1x,f14.2,3x,4(f20.8,2x))') &
-        waveno(deltae), real(cglist(ilevel)), real(calist(ilevel)), &
-        aimag(cglist(ilevel)), aimag(calist(ilevel))
+        waveno(deltae), &
+        real(cglist(ilevel)),  aimag(calist(ilevel)), &
+        aimag(cglist(ilevel)), real(calist(ilevel))
     end do
     
 
@@ -798,8 +805,9 @@ program mchd_c_molcas
   do ilevel = 2+skip,nlevels
     deltae = elevel(ilevel) - elevel(1)
     write (iu_mcd(0),'(1x,f14.2,3x,4(f20.8,2x))') &
-      waveno(deltae), real(cgav(ilevel)), real(caav(ilevel)), &
-      aimag(cgav(ilevel)), aimag(caav(ilevel))
+              waveno(deltae), &
+        real(cgav(ilevel)),  aimag(caav(ilevel)), &
+        aimag(cgav(ilevel)), real(caav(ilevel))
   end do
   
   
