@@ -1,25 +1,39 @@
-Calculation of MCD spectra based on a locally modified version of
-Molcas
 
-(c) Jochen Autschbach, University at Buffalo, SUNY
+Calculation of MCD spectra based on data obtained with OpenMolcas
+
+(c) 2018, 2019, Jochen Autschbach, University at Buffalo, SUNY
+
+Examples / tests and part of thisy manual created by Drs. Frederic
+Gendron, Yonaton Heit, Claudiu Sergentu.
 
 This is an experimental code for research that comes with absolutely
-no warranty whatsoever, and it likely has some bugs. Use at your own
-risk.
+no warranty whatsoever, and it may have bugs. Use at your own risk.
 
-We cannot provide user support. However, if you found a bug please
+We cannot provide user support. However, if you find a bug please
 let us know.
 
 --------------------------------------------------------------------------------
 
-With the options described in the QUICK-USERS-GUIDE file,
+Installation:
+
+1) Clone or download the code and adjust Makefile if needed.
+
+2) Use Make. Type ‘make’ while in the root base directory for mcd-molcas.
+
+3) Place mcd-molcas base directory in your path or prepend installation
+   directory to the commands.
+
+--------------------------------------------------------------------------------
+
+With the options described in the WORKFLOW section below,
 Molcas creates a set of files in a RASSI run:
 
 dipole-[1,2,3].txt
 angmom-[1,2,3].txt
 spin-[1,2,3].txt
+quadrupole-[1,2,3,4,5,6].txt (optional)
 
-with complex dipole moment, angular momentum (not incl. -i factor) and
+with complex multipole moment, angular momentum (not incl. -i factor) and
 spin matrices for the Cartesian laboratory coordinate axes x, y, z
 (i.e. index 1,2,3)
 
@@ -32,9 +46,9 @@ The mcd-X-molcas codes (X - a, b, or c) use these data to create A-,
 B-, and C-term data. Each of these codes reads a Fortran namelist
 input from the file
 
-mcd-options
+options.dat
 
-Example content of mcd-options (see the provided example(s)):
+Example content of options.dat (see the provided example(s)):
 
 &options degen = 2, temp = 5, nstates = 344,
 skip = 12, ddelta=1e-5, magdiag=.F. /
@@ -57,14 +71,14 @@ nstates (integer): mandatory
   all energies and matrix elements for the full list of states you
   want to include in the calculation. Obviously, the ordering of
   states in the energies file and the matrix element data files must
-  also correspond to each other.
+  match.
 
 
 states_sos (integer): optional
 
   Number of sets of states in the sum-over-states(SOS) used to determine
   the B-term. Degenate states are considered a single set of states. If this
-  term is omitted, all states are used. Does nothing for A- or C-term.
+  option is omitted, all states are used. Does nothing for A- or C-term.
 
 temp (real): optional
 
@@ -129,8 +143,8 @@ noangmom (logical): optional
 
 theta (logical): optional
 
-  Sets the theta option when creating mcdspectrum-X (X=0,1,2,3). Note
-  that theta in mcdspectrum-X can be altered after created. Whened
+  Sets the theta option when creating mcd-X-spectrum-Y (X=a,b,c, Y=0,1,2,3). 
+  Note that theta in these files can be altered after created. When
   graphed with plot-spectrum, the units of the intesity will be
   the molar ellipticity when true, but Delta epsilon when false
 
@@ -141,32 +155,33 @@ energies are grouped as intended.
 
 The data files produced by each of these codes are called
 
-mcdspectrum-X, with X = 0,1,2,3
+mcd-X-spectrum-Y, with X = a,b,c and Y = 0,1,2,3
 
 1, 2, and 3 correspond to the MCD terms for a magnetic field in
 direction x, y, or z. The '0' spectrum contains the isotropic
 average, which is most likely what you want to use. For an octahedral
-complex, as in the UCl6(-) example, the 4 spectra are identical.
+complex, as in the UCl6(-) example, the 4 spectra are identical save for
+some minor differences due to slight symmetry breaking in the wavefunctions.
 
 -------------------------------------------------------------------------------
 
-The program 'plot-spectrum' reads one of the mcdspectrum-X files as stdin
+The program 'plot-spectrum' reads one of the mcd-X-spectrum-Y files as stdin
 and produces data to make a plot of the spectrum.
 
 Example:
 
-plot-spectrum < mcdspectrum-0
+plot-mcdspectrum < mcd-X-spectrum-0
 
-The mcdspectrum-X files contain the transition energies in
+The mcd-X-spectrum-Y files contain the transition energies in
 wavenumbers, the A-, B-, or C-term data, and at the top a Fortran
-namelist input for plotspec such as
+namelist input for plot-mcdspectrum such as
 
 &plot nsyme(1)=    109, ndegen(1)=1, sigma=1000, sharpen=1, npoints=300,
  nexcit=    109, invert=.f., waveno=.t., term='C', temp=   5.00 /
 
 Depending on the state grouping and whether the ground state is
 degenerate or not, nsyme(1) and  nexcit may be equal to nstates-1 from
-the namelist input to mcd-X-molcas, or smaller. The two parameters
+the namelist input for the mcd-X-molcas code, or smaller. The two parameters
 must be equal and correspond to the number of calculated transitions
 between grouped ground state and excited state levels, minus any
 skipped low-energy states. It is determined automatically by
@@ -181,7 +196,7 @@ term (character*1):
 temp (real):
 
   temperature, set automatically based on the value given in
-  mcd-options.
+  options.dat
 
 sigma (real or integer):
 
@@ -218,7 +233,7 @@ npoints (integer):
 
 --------------------------------------------------------------------------------
 
-The script graph-it.sh reads the two data files produced by plot-spectrum
+The script graph-mcd.sh reads the two data files produced by plot-spectrum
 and generates a plot with gnuplot.
 
 One is the MCD spectrum, by default in Delta epsilon units per
@@ -232,15 +247,15 @@ spectrum is on the right vertical scale (y2). By default, the y1 and
 y2 axes are scaled as follows: y1 is chosen automatically, and the y2
 scale is 1/1000 of y1. This can be changed with the -s option. 
 
-graph-it.sh has several command line options. A plot title must be
+graph-mcd.sh has several command line options. A plot title must be
 given after the options.
 
-graph-it.sh 'my-plot' will then generate an eps file my-plot-cm.sh
+graph-mcd.sh 'my-plot' will then generate an eps file my-plot-cm.sh
 with the spectrum on an inverse cm scale. It is better to avoid blanks
 in the plot title so that you don't generate files with blanks in
 their names. This is inconvenient on a Unix / Linux system. 
 
-graph-it.sh -y "C terms" -s 800 "ucl6-mcd" generates an eps file
+graph-mcd.sh -y "C terms" -s 800 "ucl6-mcd" generates an eps file
 'ucl6-mcd-cm.eps' with a y2 label 'C terms' and a scaling of 1/800
 between y1 and y2.
 
@@ -248,21 +263,133 @@ The other options are explained in the script.
 
 --------------------------------------------------------------------------------
 
-I suggest using a script to plot the spectra like this after running
-one of the mcd-X-molcas codes:
+We suggest using a script to plot the spectra like this after running
+one of the mcd-X-molcas codes (example for C-term):
 
 rm -f graph.dat impulses.dat
 for i in 0 1 2 3; do
-  ~/code/mcd-c-molcas/plot-spectrum < mcdspectrum-$i
-  ~/code/mcd-c-molcas/graph-it.sh -y "C terms" -s 800 "ucl6-mcd-c-$i"
+  ~/code/mcd-c-molcas/plot-mcdspectrum < mcd-c-spectrum-$i
+  ~/code/mcd-c-molcas/graph-mcd.sh -y "C terms" -s 800 "ucl6-mcd-c-$i"
   rm graph.dat impulses.dat
 done
 
 In order to add different types of spectra, e.g. for A- and B-terms,
-it is better to save the plotspec output files 'graph.dat' and
-'impulses.dat' and create a customized version of graph-it.sh that
+it is better to save the plot-mcdspectrum output files 'graph.dat' and
+'impulses.dat' and create a customized version of graph-mcd.sh that
 suits your needs. 
 
+--------------------------------------------------------------------------------
+
+WORKFLOW (typically)
+
+Example input and outputs are in directories /examples/ or /tests/
+
+1) Run molcas normally, your SEWARD and RASSI inputs must include the following:
+
+In SEWARD:
+Angmom
+0.0 0.0 0.0
+AMFI
+
+In RASSI:
+SPIN
+MEES
+MESO
+PRPRint
+PROPerties
+6
+'AngMom' 1
+'AngMom' 2
+'AngMom' 3
+'MltPl  1' 1
+'MltPl  1' 2
+'MltPl  1' 3
+'MltPl  2' 1
+'MltPl  2' 2
+'MltPl  2' 3
+'MltPl  2' 4
+'MltPl  2' 5
+'MltPl  2' 6
+
+The order-2 multipoles are only needed for a subset of the functionality.
+Save the following files produced due to the presence of the PRPRint
+keyword (along with the Molcas output file)
+
+dipole-X.txt
+angmom-X.txt
+spin-X.txt
+
+X=1,2,3 where 1 is the X component, 2 is the Y component, and 3 is the
+Z component
+
+optionally, save quadrupole-X.txt with X = 1 to 6.
+	
+2) Run molcas-get-energy.sh. 
+Usage: molcas-get-energies.sh < rassi.outputfile
+
+   Output: energy.txt
+
+If the number of states in energy.txt does not match those output from
+the RASSI module then the string search in the script may need to be
+adapted. 
 
 
+3) Create a file options.dat in your working directory and modify it
+   to include the correct number of spin-orbit states and set the
+   degeneracy of your ground state. Example option.dat files can be found
+   in the test job directory. 
 
+4)a) Get the A-terms. 
+     Usage: mcd-a-molcas
+  b) Get the B-terms.
+     Usage: mcd-b-molcas
+  c) Get the C-terms.
+     Make sure you are using the correct temperature in kelvin
+     (keyword: temp = <temperature in kelvin>)
+     Usage: mcd-c-molcas        
+
+  You will get the following output files:
+  
+  mcd-X-spectrum-1 : mcd for the magnetic field oriented along the x-axis  
+  mcd-X-spectrum-2 : mcd for the magnetic field oriented along the y-axis
+  mcd-X-spectrum-3 : mcd for the magnetic field oriented along the z-axis
+  mcd-X-spectrum-0 : rotationally averaged averaged mcd
+
+  where X = a, b, or c for the different MCD terms.
+
+  These files have in lines 1 and 2 Fortran namelist inputs
+  for the program plot-mcdspectrum used in step 5. The options are explained
+  in the source code plot-mcdspectrum.f90 and in file README
+  
+  The most important parameter is 'sigma', which is the Gaussian
+  broadening parameter in wavenumbers. 
+
+5) run plot-mcdspectrum to create a gaussian broadened spectrum.
+    Usage: plot-spectrum < mcd-X-spectrum-Y
+     X = a,b,c and Y = 0,1,2,3 
+     Output : graph.dat : gaussian broadened spectrum
+ 	      impulses.dat: mcd-terms for plotting a 'stick spectrum'
+
+	The graph.dat values are additive between the A/B/C MCD terms.
+
+   WARNING: if there are low lying states, the program tends to
+   produce funny results near zero frequency. In this case you may need
+   to adjust the energy window that the program ads around the highest
+   and lowest state.
+
+ Also, if there are a lot of states you may get numerical errors.
+
+ In these cases it may be better if you use a different program in order to
+ generate and plot the broadened mcd spectra. Same for step 6.
+
+6) Graph spectrum with graph-mcd.sh as an eps file (optional)
+    Usage graph-mcd.sh [-t] [-s <number>] [-r<number>][-y <label>][-m <number>] <output>
+       flags:
+        -t : spectrum in [theta] 
+        -s : scales of the broaden spectrum.
+        -r : scale MCD-term.
+        -y : custom label for MCD-term y-axis
+        -m : shifts spectrum
+
+   Use of this script requires Gnuplot (www.gnuplot.info)
+   

@@ -27,7 +27,7 @@ FFLAGS = $(OMP)
 .SUFFIXES: .f .F .F90 .f90
 
 BIN = mcd-c-molcas mchd-c-molcas mcd-a-molcas \
-      mcd-b-molcas transition-dip-rot plot-spectrum
+      mcd-b-molcas transition-dip-rot plot-mcdspectrum
 
 OBJ = 
 
@@ -69,8 +69,8 @@ mchd-c-molcas: $(OBJ) $(OBJ90) mchd-c-molcas.o
 transition-dip-rot: $(OBJ) $(OBJ90) transition-dip-rot.o
 	$(LINKER) -o transition-dip-rot transition-dip-rot.o $(OBJ) $(OBJ90) $(FFLAGS) $(FLIB)
 
-plot-spectrum: plot-spectrum.o
-	$(LINKER) -o plot-spectrum plot-spectrum.o $(FFLAGS) $(FLIB)
+plot-mcdspectrum: plot-mcdspectrum.o
+	$(LINKER) -o plot-mcdspectrum plot-mcdspectrum.o $(FFLAGS) $(FLIB)
 
 clean:
 	rm -f $(BIN) *.o *.mod
