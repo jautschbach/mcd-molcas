@@ -6,13 +6,28 @@ module namelist_module
   implicit none
   
   real(KREAL) :: temp, ddelta
+  
   integer(KINT) :: degen, nstates, nlevels, skip, &
     states_sos
-  logical :: magdiag, nospin, noangmom, noquad, print_d, print_m, print_q, &
-    theta, usemag
+  
+  logical :: magdiag, nospin, noangmom, nodip, noquad, &
+    print_d, print_m, print_q, theta, usemag
+  
   namelist /options/ degen, temp, nstates, skip, magdiag, ddelta, &
-    nospin, noangmom, noquad, print_d, print_m, print_q, theta, states_sos, &
-    usemag
+    nospin, noangmom, nodip, noquad, print_d, print_m, print_q, &
+    theta, states_sos, usemag
+
+  ! populate namelist with default options at compile time
+
+  data degen, temp, nstates, skip, magdiag, ddelta, &
+    nospin, noangmom, nodip, noquad, print_d, print_m, print_q, &
+    theta, states_sos, usemag / &
+    0, 0.0_KREAL , 0, 0, .false., 1E-5_KREAL, .true., .true., &
+    .true., .true., .false., .false., .false., .false., 0, .false. /
+
+  save degen, temp, nstates, skip, magdiag, ddelta, &
+    nospin, noangmom, nodip, noquad, print_d, print_m, print_q, &
+    theta, states_sos, usemag
   
 end module namelist_module
   

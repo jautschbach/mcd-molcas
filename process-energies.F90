@@ -1,4 +1,4 @@
-subroutine process_energies (iu_e, out, nstates, nlevels, do_group, &
+subroutine process_energies (nstates, nlevels, do_group, &
   ddelta, skip, degen, energy, elevel, deglist, levels, accl)
 
   ! read a list of energies from a file, and group the energies into
@@ -6,12 +6,14 @@ subroutine process_energies (iu_e, out, nstates, nlevels, do_group, &
 
   use definitions
 
+  use constants_parameters
+
   implicit none
 
   ! subroutine arguments:
 
   logical, intent(in) :: do_group
-  integer(KINT), intent(in) :: iu_e, out, nstates
+  integer(KINT), intent(in) :: nstates
   real(KREAL), intent(in) :: ddelta
   integer(KINT), intent(inout) :: skip, degen
   
@@ -19,21 +21,15 @@ subroutine process_energies (iu_e, out, nstates, nlevels, do_group, &
   integer(KINT), intent(out) :: levels(nstates), accl(nstates), deglist(nstates)
   real(KREAL), intent(out) :: energy(nstates), elevel(nstates)
 
-  ! numerical constants:
-  
-  real(KREAL), parameter :: zero=0.0_KREAL
-  real(KREAL), parameter :: one=1.0_KREAL
-  real(KREAL), parameter :: two=2.0_KREAL
-  real(KREAL), parameter :: three=3.0_KREAL
-  real(KREAL), parameter :: half=0.5_KREAL
-  real(KREAL), parameter :: small=1.0E-5_KREAL
-  real(KREAL), parameter :: tiny=1E-10_KREAL
 
   ! local variables
 
   integer(KINT) :: i, j, ios
   logical :: found
   character(len=1) :: junk
+
+  real(KREAL) :: waveno, rtemp
+  waveno(rtemp) = rtemp * au2cm
 
   ! ===========================================================================
 
@@ -237,6 +233,24 @@ subroutine process_energies (iu_e, out, nstates, nlevels, do_group, &
     end if
   end if ! skip states?
 
+  ! print energies and the level number they belong to
+
+  write (out,'(/1x,a/)') 'Energies relative to state no. 1 and grouping:'
+  do i = 1, nstates
+    write (out,'(1x,i5,a,1x,f15.8,3x,f15.8,3x,i5)') i,':', &
+      energy(i),waveno(energy(i)),deglist(i)
+  end do
+
+  write (out,'(/1x,a,1x,i5,1x,a/)') 'There are',nlevels,'grouped levels'
+  write (out,*)
+
+  write (out,'(/1x,a/)') 'Levels relative to level no. 1 and degeneracy:'
+  do i = 1, nlevels
+    write (out,'(1x,i5,a,1x,f15.8,3x,f15.8,3x,i5)') i,':', &
+      elevel(i),waveno(elevel(i)),levels(i)
+  end do
+
+  write (out,*)
   
   ! all done
 
