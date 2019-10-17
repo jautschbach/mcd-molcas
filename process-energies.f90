@@ -35,13 +35,13 @@ subroutine process_energies (nstates, nlevels, do_group, &
 
   ! ===========================================================================
 
-  dbg = 1
+  dbg = 0
   
   ! --------------------------------------
   ! read the energies from the energy file
   ! --------------------------------------
 
-  ! if (dbg>0) write (out,*) 'in process_energies. do_group is ',do_group
+  if (dbg>0) write (out,*) 'in process_energies. do_group is ',do_group
 
   open(unit=iu_e, file='energies.txt', status='old', iostat=ios)
   if (ios /= 0) then

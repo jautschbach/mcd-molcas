@@ -62,7 +62,7 @@ program transition_dip_rot
   
   ! debug level:
 
-  dbg = 1
+  dbg = 0
 
   ! N.B. the namelist variables set below are defined in namelist-module.F90
 
@@ -145,6 +145,14 @@ program transition_dip_rot
   if (nodip) write (out,'(1x,a/)') '*** not including dipole contributions'
   if (noquad) write (out,'(1x,a/)') '*** not including quad. contributions'
 
+  if (polnotprop) then
+    write (out,'(/1x,66(''*'')/4(1x,a/),1x,66(''*''))') &
+      'POLNOTPROP option set. The printed oscillator strengths correspond',&
+      'to the polarization directions 1,2,3 = x,y,z and the average (0).',&
+      'The rotatory strengths in files 1,2,3 are the products x-x, y-y,',&
+      ' and z-z of the components of the electric and magnetic TDM.'
+  end if
+
 
   ! -----------------------------------------
   ! allocate memory other than scratch arrays
@@ -213,7 +221,7 @@ program transition_dip_rot
 
   ! common pre-factors for the oscillator and rotatory strength.
   ! Note that for R we pick a factor 3, because in the isotropic
-  ! spectrum it gets averaged again, but we want to get the full
+  ! spectrum it gets averaged again, and there we want to get the full
   ! scalar product of mu and m, without a factor 1/3.
   
   pred = cp1 

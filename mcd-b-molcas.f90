@@ -45,11 +45,11 @@ program mcd_b_molcas
 
   ! ============================================================================
 
-  write (out,'(/1x,a/)') 'MCD A-Term PROGRAM'
+  write (out,'(/1x,a/)') 'MCD B-Term PROGRAM'
   
   ! debug level:
 
-  dbg = 1
+  dbg = 0
 
   if (dbg>0) then
     write (out,*) 'namelist default values'
@@ -203,7 +203,7 @@ program mcd_b_molcas
   end if
   if (havequad) then
     write (out,*) &
-      'WARNING: noquad=.F. in options file, but quadrupole terms not available.'
+      'WARNING: noquad=.F. in options file, but quadrupole terms not used.'
     havequad = .false.
   end if
 

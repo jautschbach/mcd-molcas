@@ -45,7 +45,7 @@ program mchd_c_molcas
 
   ! ============================================================================
 
-  write (out,'(/1x,a/)') 'MChD PROGRAM'
+  write (out,'(/1x,a/)') 'MChD C-Term PROGRAM'
   
   ! debug level:
 
@@ -234,11 +234,17 @@ program mchd_c_molcas
   ! the prefactor for the C(G)-term is 1/(degeneracy of ground state GS)
   ! the prefactor for the C(A)-term is omega/(15 times degeneracy of GS)
   ! We do NOT include the omega here in C(A).
+  ! We do include a factor of three, so that the components for different
+  ! B-field directions AVERAGE, instead of add up, to the isotropic
+  ! average given by Barron.
   
-  preg = cp1 / degen
-  rtemp = oneby15
+  preg = three * cp1 / degen
+  rtemp = three * oneby15
   prea = rtemp * cp1 / degen
-  preg = preg * kTm1 ! division by kT
+
+  ! also include the division by kT in the common prefactors:
+  
+  preg = preg * kTm1 
   prea = prea * kTm1
   if (dbg>0) write (out,*) 'preg, prea = ', preg, prea
   
@@ -421,11 +427,11 @@ program mchd_c_molcas
       
       cglist(jlevel) = cglist(jlevel) + cg
       !write(out,*) 'cglist for jlevel now',jlevel,cglist(jlevel)      
-      cgav(jlevel) = cgav(jlevel) + cg
+      cgav(jlevel) = cgav(jlevel) + third * cg
 
       calist(jlevel) = calist(jlevel) + ca
       !write(out,*) 'calist for jlevel now',jlevel,calist(jlevel)      
-      caav(jlevel) = caav(jlevel) + ca
+      caav(jlevel) = caav(jlevel) + third * ca
       
     end do ! jlevel
     

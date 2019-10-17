@@ -23,6 +23,10 @@ subroutine print_constants
     'Dipole au to Debye conversion  ', debye, &
     'free electron g factor:        ', ge, &
     'au to 1E-40 esu**2 cm**2:      ', d2au2cgs
-    
+
+  ! ============================================================================
+
+  return
+  
 end subroutine print_constants
     
