@@ -1,10 +1,9 @@
 #!/bin/bash
 
-# prepare gnuplot graph from "plotspec" output,
+# prepare gnuplot graph from "plot-mcdspectrum" output,
 
 # adjust this for the location of your gnuplot binary:
 PL=/usr/bin/gnuplot
-#PL=/user/fvgendro/bin/bin/gnuplot
 
 ylabel="MCD terms"  # default y2 label
 scint=1    # default scaling of stick intensities

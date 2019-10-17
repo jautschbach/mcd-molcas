@@ -25,13 +25,14 @@ module constants_parameters
 
   ! physical constants, most from 2014 CODATA:
   
-  real(KREAL), parameter :: ge=2.00231930436182_KREAL   ! g_e factor
-  real(KREAL), parameter :: debye = 2.5417463E0_KREAL   ! au -> Debye
+  real(KREAL), parameter :: ge=2.00231930436182E0_KREAL  ! g_e factor
+  real(KREAL), parameter :: debye = 2.5417463E0_KREAL    ! au -> Debye
   real(KREAL), parameter :: au2cm=2.194746313702E+5_KREAL ! au -> cm**(-1)
-  real(KREAL), parameter :: au2ev=27.21138602E0_KREAL   ! au -> eV
-  real(KREAL), parameter :: boltzcm=0.69503457_KREAL    ! cm**(-1) / K
-  real(KREAL), parameter :: thunit=5.02883E5_KREAL      ! C -> [theta]
-  real(KREAL), parameter :: cspeed=137.035999139_KREAL  ! speed of light in a.u.
+  real(KREAL), parameter :: au2ev=27.21138602E0_KREAL    ! au -> eV
+  real(KREAL), parameter :: boltzcm=0.69503457_KREAL     ! cm**(-1) / K
+  real(KREAL), parameter :: boltzau=3.1668115635E-6_KREAL ! Hartree/K
+  real(KREAL), parameter :: thunit=5.02883E5_KREAL       ! C -> [theta]
+  real(KREAL), parameter :: cspeed=137.035999139E0_KREAL ! speed of light in a.u.
   real(KREAL), parameter :: csq = cspeed*cspeed         ! c**2
 
   ! conversion factors for dipole and rotstrength from

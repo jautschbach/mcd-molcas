@@ -78,7 +78,7 @@ program plotspec
 
   ! =====================================================================
 
-  write (6,'(/a/)') ' P L O T - S P E C T R U M'
+  write (6,'(/a/)') ' P L O T - M C D S P E C T R U M'
 
   open (7,file='impulses.dat',status='unknown')
   open (8,file='graph.dat',status='unknown')
@@ -329,7 +329,7 @@ program plotspec
   close (8,status='keep')
 
 
-  write (6,*) 'Note: use the script "graph-it.sh" to plot the data'
+  write (6,*) 'Note: use the script "graph-mcd.sh" to plot the data'
   if (theta) write (6,*) 'and USE THE -t OPTION !'
   stop 'normal termination'
   end

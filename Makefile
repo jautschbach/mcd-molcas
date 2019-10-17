@@ -27,7 +27,7 @@ FFLAGS = $(OMP)
 .SUFFIXES: .f .F .F90 .f90
 
 BIN = mcd-c-molcas mchd-c-molcas mcd-a-molcas \
-      mcd-b-molcas transition-dip-rot plot-mcdspectrum
+      mcd-b-molcas transition-dip-rot plot-mcdspectrum 
 
 OBJ = 
 

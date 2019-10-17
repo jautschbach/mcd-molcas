@@ -4,6 +4,8 @@ program transition_dip_rot
 
   ! (c) 2019, Jochen Autschbach, SUNY Buffalo
 
+  ! NOT YET COMPLETE, so some of the description below is aspirational.
+  
   ! the dipole (D), magnetic (M), and quadrupole (Q) intensities
   ! are those from S. DeBeer et al. Inorganica Chimica Acta 361 (2008) 965,
   ! and Bernadotte et al., JCP 137 (2012), 204106.
@@ -390,11 +392,13 @@ program transition_dip_rot
 
   idir = 1
 
-  !cdav(:) = cdlist(:,1) 
-  !crav(:) = crlist(:,1)
-    
-  cdav(:) = half * (cdlist(:,2) + cdlist(:,3))
-  crav(:) = half * (crlist(:,2) + crlist(:,3))
+  if (polnotprop) then
+    cdav(:) = cdlist(:,1) 
+    crav(:) = crlist(:,1)
+  else
+    cdav(:) = half * (cdlist(:,2) + cdlist(:,3))
+    crav(:) = half * (crlist(:,2) + crlist(:,3))
+  end if
     
   do ilevel = 2+skip,nlevels
     deltae = elevel(ilevel) - elevel(1)
@@ -412,11 +416,14 @@ program transition_dip_rot
 
   idir = 2
 
-  !cdav(:) = cdlist(:,2) 
-  !crav(:) = crlist(:,2)
+  if (polnotprop) then
+    cdav(:) = cdlist(:,2) 
+    crav(:) = crlist(:,2)
+  else
+    cdav(:) = half * (cdlist(:,1) + cdlist(:,3))
+    crav(:) = half * (crlist(:,1) + crlist(:,3))
+  end if
   
-  cdav(:) = half * (cdlist(:,1) + cdlist(:,3))
-  crav(:) = half * (crlist(:,1) + crlist(:,3))
     
   do ilevel = 2+skip,nlevels
     deltae = elevel(ilevel) - elevel(1)
@@ -434,11 +441,13 @@ program transition_dip_rot
 
   idir = 3
 
-  !cdav(:) = cdlist(:,3) 
-  !crav(:) = crlist(:,3)
-  
-  cdav(:) = half * (cdlist(:,1) + cdlist(:,2))
-  crav(:) = half * (crlist(:,1) + crlist(:,2))
+  if (polnotprop) then
+    cdav(:) = cdlist(:,3) 
+    crav(:) = crlist(:,3)
+  else
+    cdav(:) = half * (cdlist(:,1) + cdlist(:,2))
+    crav(:) = half * (crlist(:,1) + crlist(:,2))
+  end if
     
   do ilevel = 2+skip,nlevels
     deltae = elevel(ilevel) - elevel(1)

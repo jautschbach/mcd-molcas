@@ -26,14 +26,21 @@ FFLAGS = $(OMP)
 
 .SUFFIXES: .f .F .F90 .f90
 
-BIN = mcd-c-molcas mchd-c-molcas mcd-a-molcas mcd-b-molcas plot-spectrum
+BIN = mcd-c-molcas mchd-c-molcas mcd-a-molcas \
+      mcd-b-molcas transition-dip-rot plot-mcdspectrum
 
 OBJ = 
 
 OBJ90 = definitions.o \
         namelist-module.o \
+        constants-parameters.o \
+        shared-variables.o \
+        read-options.o \
+        read-data-files.o \
         print-rec-matrix.o \
         diagonalize-matrix.o \
+        diagonalize-magdip-gs.o \
+        print-constants.o \
         vector-product.o \
         process-energies.o
 
@@ -58,8 +65,11 @@ mcd-b-molcas: $(OBJ) $(OBJ90) mcd-b-molcas.o
 mchd-c-molcas: $(OBJ) $(OBJ90) mchd-c-molcas.o
 	$(LINKER) -o mchd-c-molcas mchd-c-molcas.o $(OBJ) $(OBJ90) $(FFLAGS) $(FLIB)
 
-plot-spectrum: plot-spectrum.o
-	$(LINKER) -o plot-spectrum plot-spectrum.o $(FFLAGS) $(FLIB)
+transition-dip-rot: $(OBJ) $(OBJ90) transition-dip-rot.o
+	$(LINKER) -o transition-dip-rot transition-dip-rot.o $(OBJ) $(OBJ90) $(FFLAGS) $(FLIB)
+
+plot-mcdspectrum: plot-mcdspectrum.o
+	$(LINKER) -o plot-mcdspectrum plot-mcdspectrum.o $(FFLAGS) $(FLIB)
 
 clean:
 	rm -f $(BIN) *.o *.mod

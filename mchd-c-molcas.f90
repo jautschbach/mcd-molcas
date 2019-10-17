@@ -34,6 +34,8 @@ program mchd_c_molcas
   integer(KINT) :: idir, jdir, kdir, i, i1, i2, j
   
   integer(KINT) ::  ilevel, jlevel, is1, is2, js
+
+  real(KREAL) :: kTm1
   
   ! in-line functions
 
@@ -47,10 +49,10 @@ program mchd_c_molcas
   
   ! debug level:
 
-  dbg = 1
+  dbg = 0
 
   if (dbg>0) then
-    write (out,*) 'namelist default values'
+    write (out,'(/1x,a/)') 'namelist default values'
     write (out,options)
   end if
 
@@ -91,13 +93,14 @@ program mchd_c_molcas
   call read_options
   
   if (dbg>0) then
-    write (out,*) 'namelist values after prog. startup and input'
+    write (out,'(/1x,a/)') 'namelist values after prog. startup and input'
     write (out,options)
   end if
 
   ! Boltzmann factor
-  kT = temp * boltzcm
+  kT = temp * boltzau
   if (kT.le.zero) stop 'kT < 0. Aborting'
+  kTm1 = one/kT
 
   ! sanity checks: 
 
@@ -135,8 +138,8 @@ program mchd_c_molcas
 
   ! print header:
 
-  write (out, '(/1x,a/1x,a,1x,f7.2/1x,a,1x,f12.6/)') &
-    'MChD C-term calculation','T =',temp,'kT in cm**(-1)/K:',kT
+  write (out, '(/1x,a/1x,a,1x,f7.2/1x,a,1x,f20.15/)') &
+    'MChD C-term calculation','T =',temp,'kT in au/K:',kT
 
   if (nospin) write (out,'(1x,a/)') '*** not including S contributions'
   if (noangmom) write (out,'(1x,a/)') '*** not including L contributions'
@@ -231,14 +234,12 @@ program mchd_c_molcas
   ! the prefactor for the C(G)-term is 1/(degeneracy of ground state GS)
   ! the prefactor for the C(A)-term is omega/(15 times degeneracy of GS)
   ! We do NOT include the omega here in C(A).
-  ! Also, THE C TERMS ARE MULTIPLIED BY c**2 TO AVOID LOSS OF
-  ! PRECISION IN THE PRINTED RESULTS.
   
   preg = cp1 / degen
   rtemp = oneby15
   prea = rtemp * cp1 / degen
-  preg = preg * csq ! here is the c**2 factor
-  prea = prea * csq
+  preg = preg * kTm1 ! division by kT
+  prea = prea * kTm1
   if (dbg>0) write (out,*) 'preg, prea = ', preg, prea
   
   cgav(:) = c0 ! initialize isotropic C(G)-terms with complex zeros
@@ -264,8 +265,8 @@ program mchd_c_molcas
       ', ndegen(1)=1, sigma=1000, sharpen=1, npoints=300,', &
       '# nexcit=',ntemp,', invert=F, waveno=T, term=''C'', temp=',temp,&
       ', theta=',theta,' /', &
-      '# the last 2 columns should be zero and are printed for debug purposes', &
-      '# all C terms contain a factor c**2 to avoid loss of printed precision', &
+      '# the last 2 columns should be effectively zero', &
+      '# all C terms contain a factor 1/kT in atomic units', &
       '#  E(cm**-1), Re-C(G), Im-C(A'')/omega, Im-C(G)/omega, Re-C(A'')'
 
   end do ! idir
@@ -436,7 +437,7 @@ program mchd_c_molcas
     
     do ilevel = 2+skip,nlevels
       deltae = elevel(ilevel) - elevel(1)
-      write (iu_out(idir),'(1x,f14.2,3x,4(f20.8,2x))') &
+      write (iu_out(idir),'(1x,f14.4,3x,4(f25.15,2x))') &
         waveno(deltae), &
         real(cglist(ilevel)),  aimag(calist(ilevel)), &
         aimag(cglist(ilevel)), real(calist(ilevel))
@@ -453,7 +454,7 @@ program mchd_c_molcas
   
   do ilevel = 2+skip,nlevels
     deltae = elevel(ilevel) - elevel(1)
-    write (iu_out(0),'(1x,f14.2,3x,4(f20.8,2x))') &
+    write (iu_out(0),'(1x,f14.4,3x,4(f25.15,2x))') &
               waveno(deltae), &
         real(cgav(ilevel)),  aimag(caav(ilevel)), &
         aimag(cgav(ilevel)), real(caav(ilevel))
@@ -471,15 +472,43 @@ program mchd_c_molcas
 
   call print_constants
   
-  ! --------------------------------------------------
-  ! deallocate arrays, clean up if necessary, and exit
-  ! --------------------------------------------------
+  ! -----------------
+  ! deallocate arrays
+  ! -----------------
   
   deallocate(energy, eldip, magdip, cgav, caav, &
     deglist, cglist, calist, levels, elevel, accl)
   if (magdiag) deallocate (eldip_orig, magdip_orig)
   if (havequad) deallocate (elquad)
   if (havequad .and. magdiag) deallocate (elquad_orig)
+
+  ! -----------------
+  ! some debug output
+  ! -----------------
+
+  if (dbg>0) then
+    write (out,'(/1x,a)') 'Levi Civita Tensor nonzero elements'
+    do idir = 1,3
+      do jdir = 1,3
+        do kdir = 1,3
+          if (lc(idir,jdir,kdir).ne.c0) &
+            write (out,'(1x,3(1x,i2),a,1x,F4.1)') &
+            idir, jdir, kdir, ': ', real(lc(idir,jdir,kdir))
+        end do
+      end do
+    end do
+    write (out,'(/1x,a)') 'quadrupole indices'
+    do idir = 1,3
+      do jdir = 1,3
+        write (out,'(1x,2(1x,i2),a,1x,i2)') &
+          idir, jdir,': ', qindex(idir,jdir)
+      end do
+    end do
+  end if ! dbg
+
+  ! --------
+  ! all done
+  ! --------
   
   stop 'normal termination of mchd-c'
   

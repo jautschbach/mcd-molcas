@@ -31,11 +31,17 @@ subroutine process_energies (nstates, nlevels, do_group, &
   real(KREAL) :: waveno, rtemp
   waveno(rtemp) = rtemp * au2cm
 
+  integer :: dbg
+
   ! ===========================================================================
 
+  dbg = 1
+  
   ! --------------------------------------
   ! read the energies from the energy file
   ! --------------------------------------
+
+  ! if (dbg>0) write (out,*) 'in process_energies. do_group is ',do_group
 
   open(unit=iu_e, file='energies.txt', status='old', iostat=ios)
   if (ios /= 0) then
@@ -190,7 +196,9 @@ subroutine process_energies (nstates, nlevels, do_group, &
   write(out,'(/1x,a,i5/)') 'Ground state degeneracy: ', degen
 
   ! now assign the energies per grouped level. While we're at it,
-  ! the energies within a grouped level are averaged:
+  ! the energies within a grouped level are averaged and re-set
+  ! relative to the averaged energy of the first level. This
+  ! may be necessary if energies in a degenerate first level differ slightly.
 
   if (do_group) then
     do i = 1, nlevels
@@ -211,6 +219,10 @@ subroutine process_energies (nstates, nlevels, do_group, &
       elevel(i) = energy(accl(i)+1)
     end do
   end if
+  do i = 2, nlevels
+    elevel(i) = elevel(i) - elevel(1)
+  end do
+  elevel(1) = zero
 
   ! make sure the number of skipped states is compatible with
   ! the state grouping
