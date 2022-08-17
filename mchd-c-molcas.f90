@@ -396,7 +396,7 @@ program mchd_c_molcas
               if (is2.gt.nstates .or. is2.lt.1) &
                 stop 'is2 out of bounds'
               
-              ! (a) calculate C(A)
+              ! (a) calculate C(G)
               
               do jdir = 1,3
                 do kdir = 1,3
