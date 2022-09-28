@@ -44,7 +44,10 @@ subroutine read_data_files
       end if
       
       read(iu_d,*) cstemp
-      
+
+      ! by trial & error, we leared that the spin-y matrix must be
+      ! processed the same way as angmon, and spin x,z are processed like
+      ! electric dipoles and similar properties. 
       ! n.b. inner loop must be the row index
       do j = 1, nstates
         do i = 1, nstates
@@ -99,7 +102,8 @@ subroutine read_data_files
         do i = 1, nstates
           read (iu_d,*, iostat=ios) idum, jdum, ctemp(1:2)
           if (dbg>2) write (out,*) i, j, ctemp(1), ctemp(2)
-          ! angmom is -Im, Re in Molcas, missing a factor of -i
+          ! angmom is -r x del in Molcas, missing a factor of i
+          ! relative to r x p. 
           angmom(i,j,idir) = cmplx (-ctemp(2), ctemp(1), kind(KREAL))
           if (ios /= 0) then
             write (err,*) 'idir, i, j = ', idir, i, j
@@ -125,10 +129,10 @@ subroutine read_data_files
   ! now process electric multipole moments
   ! --------------------------------------
 
-  ! -----------------------------------------------------------
+  ! ---------------------------------------------------------
   ! read the electric dipole data in a loop over x, y, z. The
-  ! electric dipole elements will exclude the factor -e = -1 au
-  ! -----------------------------------------------------------
+  ! electric dipole elements include a factor -e = -1 au
+  ! ---------------------------------------------------------
 
   if (havedip) then
 
@@ -175,7 +179,7 @@ subroutine read_data_files
 
   ! -------------------------------------------------------------
   ! read the electric quadrupole data in a loop over x, y, z. The
-  ! matrix elements will exclude the factor -e = -1 au
+  ! matrix elements include a factor -e = -1 au
   ! -------------------------------------------------------------
   
   

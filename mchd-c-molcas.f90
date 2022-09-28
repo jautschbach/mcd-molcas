@@ -178,13 +178,15 @@ program mchd_c_molcas
   ! read transition moment data from the data files, and assemble the
   ! magnetic moment operator matrix elements from (with u = x,y,z)
   ! L_u + 2 S_u. We also attach the factor
-  ! -e\hbar / (2 m_e) = -1/2 au. 
+  ! -e\hbar / (2 m_e) = -1/2 au.
+  
   ! We operate under the assumption that the electric dipole and
   ! quadrupoles include -e = -1 au factors.  As we are dealing with
   ! transition dipoles, there is no need to remove any nuclear
-  ! contributions to the moments.  Upon return from read_data, the
-  ! quadrupole is traceless, and it does NOT contain the factor of
-  ! 3/2 that it has in Barron's book. We therefore fix that, too.
+  ! contributions to the electric moments.  Upon return from
+  ! read_data_files, the quadrupole is traceless, and it does NOT
+  ! contain the factor of 3/2 that it has in Barron's book. We
+  ! therefore fix that, too.
   ! -----------------------------------------------------------------
   
   allocate (eldip(nstates,nstates,3))

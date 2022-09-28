@@ -23,7 +23,7 @@ program transition_dip_rot
 
   ! note: the electric multipole integrals from Molcas include a factor
   ! of -1 for the electron charge. We therefore generate the magnetic moment
-  ! matrix elements also with a -1 factor, unlike in the MCD codes.
+  ! matrix elements also with a negative pre-factor, unlike in the MCD code.
 
   ! this programs's options are controlled by a Fortran namelist
   ! input.  the namelist is called 'options' and read from a file
@@ -180,11 +180,12 @@ program transition_dip_rot
   ! magnetic moment operator matrix elements from (with u = x,y,z)
   ! L_u + 2 S_u. We also attach the factor
   ! -e\hbar / (2 m_e) = -1/2 au. 
+
   ! We operate under the assumption that the electric dipole and
   ! quadrupoles include -e = -1 au factors.  As we are dealing with
   ! transition dipoles, there is no need to remove any nuclear
-  ! contributions to the moments.  Upon return from read_data, the
-  ! quadrupole is traceless.
+  ! contributions to the electric moments.  Upon return from
+  ! read_data_files, the quadrupole is traceless.
   ! -----------------------------------------------------------------
   
   if (havedip) then
@@ -224,7 +225,7 @@ program transition_dip_rot
   ! spectrum it gets averaged again, and there we want to get the full
   ! scalar product of mu and m, without a factor 1/3.
   
-  pred = cp1 
+  pred = cp1 ! complex +1
   prer = cp1 * three
  
   if (dbg>0) write (out,*) 'pred, prer = ', pred, prer

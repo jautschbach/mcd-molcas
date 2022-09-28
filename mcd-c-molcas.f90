@@ -184,7 +184,7 @@ program mcd_c_molcas
   ! We operate under the assumption that the electric dipole elements
   ! include  -e = -1 au factors.  As we are dealing with
   ! transition dipoles, there is no need to remove any nuclear
-  ! contributions to the moments. 
+  ! contributions to the electric moments. 
   ! -----------------------------------------------------------------
   
   allocate (eldip(nstates,nstates,3))
