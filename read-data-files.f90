@@ -1,6 +1,12 @@
 
 subroutine read_data_files
 
+  ! this routine is part of J. Autschbach's set of programs to process
+  ! Molcas data for the generation of various types of spectral
+  ! intensities
+  
+  ! (c) 2019-2022 Jochen Autschbach, SUNY Buffalo
+
   use definitions
   
   use namelist_module
@@ -124,6 +130,53 @@ subroutine read_data_files
   end if ! haveang
   
   if (havespin .or. haveang) deallocate (angmom)
+
+  ! -----------------------------------------
+  ! read velocity data in a loop over x, y, z
+  ! -----------------------------------------
+
+  if (havevel) then
+
+    if (.not. allocated(velocity)) &
+      stop 'read_data_files: velocity array not allocated, though it should be'
+
+    velocity = 0
+    
+    do idir = 1, 3
+      
+      write (cs,'(a,i1,a)') 'velocity_dipole-',idir,'.txt'
+      
+      open(unit=iu_d, file=trim(cs), status='old', iostat=ios)
+      if (ios /= 0) then
+        write (err,*) 'error: file '//trim(cs)//' does not exist'
+        stop 'error termination'
+      end if
+      
+      read(iu_d,*) cstemp
+      
+      ! n.b. inner loop must be the row index
+      do j = 1, nstates
+        do i = 1, nstates
+          read (iu_d,*, iostat=ios) idum, jdum, ctemp(1:2)
+          !read (iu_d,'(I4,I4,1x,E25.16,1x,E25.16)', iostat=ios) & 
+          !  idum, jdum, ctemp(1), ctemp(2)
+          if (dbg>2) write (out,*) i, j, ctemp(1), ctemp(2)
+          velocity(i,j,idir) = cmplx (-ctemp(2), ctemp(1), kind(KREAL))
+          if (ios /= 0) then
+            write (err,*) 'idir, i, j = ', idir, i, j
+            write (err,*) 'error reading velocity value from '//trim(cs)
+            stop 'error termination'
+          end if
+        end do ! i
+      end do ! j
+     
+      close (iu_d)
+      
+    end do ! idir = velocity (del) components
+    
+    write (out,'(1x,a/)') 'successfully read velocity data files'
+
+  end if ! havevel 
 
   ! --------------------------------------
   ! now process electric multipole moments
@@ -293,7 +346,7 @@ subroutine read_data_files
     do i = 1,nstates
       do j = 1,nstates
         write (out,'(i5,1x,i5,1x,3("("F15.10,SP,F15.10,"i)"))') i,j, &
-          -eldip(i,j,1:3)
+          eldip(i,j,1:3)
       end do
     end do
   end if ! print_d

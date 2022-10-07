@@ -2,6 +2,7 @@
 *.mod
 *~
 lala*
+Makefile
 graph.dat
 impulses.dat
 plot-spectrum
@@ -9,4 +10,7 @@ mcd-c-molcas
 mcd-a-molcas
 mcd-b-molcas
 mchd-c-molcas
+plot-mcdspectrum
+transition-dip-rot
+transition-vel-rot
 tests/*-temp

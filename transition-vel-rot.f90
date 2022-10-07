@@ -1,33 +1,17 @@
-program transition_dip_rot
+program transition_vel_rot
 
   ! calculate oscillator and rotatory strengths from Molcas data
+  ! MODIFIED version of transition-dip-rot, using dipole-velocity data
 
   ! this is part of J. Autschbach's set of programs to process
   ! Molcas data for the generation of various types of spectral
   ! intensities
   
-  ! (c) 2019-2022 Jochen Autschbach, SUNY Buffalo
-
-  ! NOT YET COMPLETE, so some of the description below is aspirational.
-  
-  ! the dipole (D), magnetic (M), and quadrupole (Q) intensities
-  ! are those from S. DeBeer et al. Inorganica Chimica Acta 361 (2008) 965,
-  ! and Bernadotte et al., JCP 137 (2012), 204106.
-  ! For now, we lack the magnetic quadrupole and electric octupole terms
-  ! needed to render the intensities beyond the electric dipole approximation
-  ! origin-invariant, and we don't yet have the velocity variants of the
-  ! higher order electric multipoles to overcome the origin dependence due
-  ! to the basis set incompleteness. I.e. the higher order terms are
-  ! calculated as in DeBeer er al., assuming atom-centered transitions
-  ! with the atom in question being at the coordinate origin (typically
-  ! a metal center in a complex)
-
-  ! note: for the traceless electric quadrupole, we use the same
-  ! definition as DeBeer et al., without the commonly used factor of 3/2
+  ! (c) 2022 Jochen Autschbach, SUNY Buffalo
 
   ! note: the electric multipole integrals from Molcas include a factor
   ! of -1 for the electron charge. We therefore generate the magnetic moment
-  ! matrix elements also with a negative pre-factor, unlike in the MCD code.
+  ! matrix elements also with a negative pre-factor.
 
   ! this programs's options are controlled by a Fortran namelist
   ! input.  the namelist is called 'options' and read from a file
@@ -48,7 +32,7 @@ program transition_dip_rot
   
   complex(KREAL), dimension(:,:), allocatable :: cdlist, crlist
   
-  complex(KREAL) :: cd, ctmp, cr, pred, prer
+  complex(KREAL) :: cd, ctmp, cr, pred, prer, dipvelif(3), dipvelfi(3)
 
   integer(KINT) :: idir, jdir, kdir, i, j
 
@@ -62,7 +46,7 @@ program transition_dip_rot
 
   ! ============================================================================
 
-  write (out,'(/1x,a/)') 'Transition Dipole and Rotatory Strengths'
+  write (out,'(/1x,a/)') 'Transition Dipole and Rotatory Strengths (VEL)'
   
   ! debug level:
 
@@ -118,12 +102,12 @@ program transition_dip_rot
       'one or more namelist parameters in options file are unreasonable'
   end if
 
-  if (nospin .and. noangmom .and. nodip .and. noquad) then
+  if (nospin .and. noangmom .and. novel .and. noquad) then
     stop 'all NO-operator options set. There is nothing to do ...'
   end if
 
-  if (nodip) then
-   stop 'no dipole requested => nothing to do ...'
+  if (novel) then
+   stop 'no velocity-dipole requested => nothing to do ...'
   end if
 
   if (nospin .and. noangmom) then
@@ -155,13 +139,13 @@ program transition_dip_rot
   if (noquad) write (out,'(1x,a/)') '*** not including quad. contributions'
 
   write (out,'(/1x,66(''*'')/4(1x,a/),1x,66(''*''))') &
-      'This code uses  the LENGTH form of the transition dipole.',&
-      'Use program transition-vel-rot to generate the corresponding',&
-      'data with the velocity form of the dipole, assuming that you',&
+      'This code uses the VELOCITY form of the transition dipole.',&
+      'Use program transition-dip-rot to generate the corresponding',&
+      'data with the length form of the dipole, assuming that you',&
       ' have the corresponding data files available.'
 
-  ! given the putput we just wrote, might as well disable the havevel option
-  havevel = .false.
+  ! given the putput we just wrote, might as well disable the havedip option
+  havedip = .false.
 
   if (polnotprop) then
     write (out,'(/1x,66(''*'')/4(1x,a/),1x,66(''*''))') &
@@ -264,7 +248,7 @@ program transition_dip_rot
 
   do idir = 0,3
     
-    write(outfile(idir),'(a,i1)') 'spectrum-',idir
+    write(outfile(idir),'(a,i1)') 'velspectrum-',idir
     open (iu_out(idir), file=trim(outfile(idir)), status='unknown', iostat=ios)
     if (ios /= 0) then
       write (err,*) 'problem opening file '//trim(outfile(idir))
@@ -285,10 +269,9 @@ program transition_dip_rot
 
   end do ! idir
   
-  ! --------------------------------------------------
-  ! start loop over the components of the polarization
-  ! or propagation directions
-  ! --------------------------------------------------
+  ! ----------------------------------------------------
+  ! start loop over the components of the xyz directions
+  ! ----------------------------------------------------
 
   do idir = 1,3
 
@@ -338,19 +321,37 @@ program transition_dip_rot
           deltae = elevel(jlevel) - elevel(ilevel)
 
           if (dbg>0) write (out,*) 'jlevel,ilevel,delta-E',jlevel,ilevel,deltae
+
+          if (deltae.lt.small) then ! potential problem with small energy gap
+            write (out,*) 'jlevel,ilevel,delta-E',jlevel,ilevel,deltae
+            write (out,*) '*** WARNING: SMALL energy gap ***'
+            write (err,*) '*** WARNING: SMALL energy gap. See output ***'
+          end if
           
           is = accl(ilevel) + i
           
           if (is.gt.nstates .or. is.lt.1) &
             stop 'is1 out of bounds'
-          
-          ! (a) calculate oscillator strength for polarization idir
 
-          if (havedip) then
-            ctmp = pred * two * deltae *  &
-              eldip(is,js,idir) * eldip(js,is,idir)
-            cd = cd + ctmp
-          end if
+          ! the 'velocity' array holds (apparently) the momentum
+          ! matrix elements, and therefore we convert them here to
+          ! the electric transition dipole moments by multiplying
+          ! with +/-i/deltae with  with i = sqm1
+          ! The sign for i->f and f->i transitions must be opposite because
+          ! the conversion is
+          ! <i | p | f> = i(E_i - E_f) <i | r | f>
+          ! so if we swap the state indices, we're supposed to change
+          ! deltae to -deltae, too. Here, deltae = E_f - E_i
+
+          dipvelif(:) = sqm1 * velocity(is,js,:) / deltae
+          dipvelfi(:) = -sqm1 * velocity(js,is,:) / deltae
+          
+          
+          ! (a) calculate oscillator strength for direction idir
+            
+          ctmp = pred * two * deltae *  &
+            dipvelif(idir) * dipvelfi(idir)
+          cd = cd + ctmp
           
           
           ! (b) calculate rotatory strength matching the
@@ -358,10 +359,12 @@ program transition_dip_rot
           ! elements.  We take care of taking the imaginary part of
           ! the electric-magnetic dipole contribution by multiplying
           ! it with -i = -sqm1
+          ! NOTE: AT PRESENT ONLY ISOTROPIC R IS SUPPORTED FOR VELOCITY 
 
-          if ( (havespin.or.haveang) .and. havedip) then
+          if ( (havespin.or.haveang)) then
             ctmp = prer *  &
-              eldip(is,js,idir) * magdip(js,is,idir)
+              dipvelif(idir) * magdip(js,is,idir)
+            write(out,*) 'ctmp =',ctmp
           
             cr = cr - sqm1 * ctmp
           end if
@@ -375,28 +378,29 @@ program transition_dip_rot
           ! I leave the equation below in case we want to get the whole
           ! rotatory strength tensor.
 
-          if (havequad .and. havedip) then
-            do jdir = 1,3
-              do kdir = 1,3
-                ctmp = prer * fourth * deltae * ( &
-                  lc(idir,jdir,kdir) * eldip(is,js,jdir) * &
-                  elquad(js,is,qindex(kdir,idir)) + &
-                  lc(idir,jdir,kdir) * eldip(is,js,jdir) * &
-                  elquad(js,is,qindex(kdir,idir)) )
-                cr = cr + ctmp
-              end do
-            end do
-          end if
+          ! NOT YET SUPPORTED
+!!$          if (havequad .and. havevel) then
+!!$            do jdir = 1,3
+!!$              do kdir = 1,3
+!!$                ctmp = prer * fourth * deltae * ( &
+!!$                  lc(idir,jdir,kdir) * eldip(is,js,jdir) * &
+!!$                  elquad(js,is,qindex(kdir,idir)) + &
+!!$                  lc(idir,jdir,kdir) * eldip(is,js,jdir) * &
+!!$                  elquad(js,is,qindex(kdir,idir)) )
+!!$                cr = cr + ctmp
+!!$              end do
+!!$            end do
+!!$          end if
           
           
         end do ! i1
       end do ! j1
       
       cdlist(jlevel,idir) = cdlist(jlevel,idir) + cd
-      !write(out,*) 'cdlist for jlevel now',jlevel,cdlist(jlevel,idir)      
+      write(out,*) 'cdlist for jlevel now',jlevel,cdlist(jlevel,idir)      
 
       crlist(jlevel,idir) = crlist(jlevel,idir) + cr
-      !write(out,*) 'crlist for jlevel now',jlevel,crlist(jlevel,idir)      
+      write(out,*) 'crlist for jlevel now',jlevel,crlist(jlevel,idir)      
       
     end do ! jlevel
     
@@ -411,6 +415,10 @@ program transition_dip_rot
   ! -------------------------
 
   crlist = crlist * rotconv
+
+  !do ilevel=1,nlevels
+  !  write(out,*) crlist(ilevel,:)
+  !end do
 
   ! -----------------------------------------------------------
   ! write spectral data to files. idir = 1,2,3 is for the light
@@ -530,4 +538,4 @@ program transition_dip_rot
   ! ============================================================================
 
   
-end program transition_dip_rot
+end program transition_vel_rot

@@ -1,6 +1,12 @@
 
 module constants_parameters
 
+  ! this module is part of J. Autschbach's set of programs to process
+  ! Molcas data for the generation of various types of spectral
+  ! intensities
+  
+  ! (c) 2019-2022 Jochen Autschbach, SUNY Buffalo  
+
   use definitions
 
   implicit none
