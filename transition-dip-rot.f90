@@ -54,6 +54,9 @@ program transition_dip_rot
 
   integer(KINT) ::  ilevel, jlevel, is, js
 
+  complex(KREAL), dimension(:,:,:), allocatable :: eldip_orig, magdip_orig, &
+    elquad_orig
+
   ! in-line functions
 
   real(KREAL) :: waveno, evolt
@@ -135,7 +138,7 @@ program transition_dip_rot
   if (degen.lt.1 .and. .not.do_group) stop 'degen < 1 requires ddelta > 0'
 
   if (magdiag) write (out,'(/1x,a,//)') &
-    '*** NOTE: magdiag is set to T in options file, but ignored here ***'
+    '*** NOTE: magdiag is set to T in options file ***'
 
   ! we're defining these for convenience:
   havespin = .not.nospin    ! we have spin matrices
@@ -236,6 +239,24 @@ program transition_dip_rot
   
   write (out,'(//1x,40(''-'')/1x,a/)') 'D and R calculation'
 
+  ! if magdiag is set, then save the transition dipole matrices in the
+  ! original basis of states in <array>_orig so we can restore the
+  ! arrays for each run of idir = 1,3. Not absolutely needed, but convenient.
+  
+  if (magdiag) then
+    allocate (eldip_orig(nstates,nstates,3))
+    allocate (magdip_orig(nstates,nstates,3))
+    
+    eldip_orig  = eldip
+    magdip_orig = magdip
+    
+    if (havequad) then
+      allocate (elquad_orig(nstates,nstates,6))
+      elquad_orig  = elquad
+    end if
+    
+  end if
+  
   ! memory allocations:
   
   allocate (cdav(nlevels), crav(nlevels))
@@ -303,6 +324,29 @@ program transition_dip_rot
       write (out,'(1x,a,1x,i7,1x,a/)') 'The lowest',skip,'excited levels&
         & will be skipped'
     end if
+
+
+    ! select GS components to diagonalize Zeeman Hamiltonian if
+    ! magdiag is set, for a magnetic field in direction idir
+    
+    if (magdiag) then
+      
+      eldip = eldip_orig
+      magdip = magdip_orig
+      if (havequad) elquad = elquad_orig
+      
+      call diagonalize_magdip_gs(idir)
+      
+      write (out,'(1x,a/)') 'Ground state now diagonalizes Zeeman operator'
+      write (out,'(1x,a)') 'Complex magnetic moment matrix elements for GS:'
+      do i = 1,degen
+        write (out,'(/1x,a,1x,i2)') 'GS component',i
+        do jdir = 1,3
+          write (out,'(1x,F14.8,SP,F14.8,a)') magdip(i,i,jdir),'i'
+        end do
+      end do ! i
+      write (out,*)
+    end if ! magdiag
 
     ! ---------------------------------------------
     ! loop over excited levels and their components
@@ -524,6 +568,9 @@ program transition_dip_rot
   if (havedip) deallocate(eldip)
   if (havequad) deallocate(elquad)
   if (havevel) deallocate(velocity)
+
+  if (magdiag) deallocate (eldip_orig, magdip_orig)
+  if (havequad .and. magdiag) deallocate (elquad_orig)
   
   stop 'normal termination of transitions-dip-rot'
   

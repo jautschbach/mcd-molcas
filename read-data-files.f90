@@ -63,6 +63,7 @@ subroutine read_data_files
             angmom(i,j,idir) = cmplx (ctemp(1), ctemp(2), kind(KREAL))
           else
             angmom(i,j,idir) = cmplx (-ctemp(2), ctemp(1), kind(KREAL))
+             !angmom(i,j,idir) = cmplx (ctemp(1), ctemp(2), kind(KREAL)) ! new
           end if
           if (ios /= 0) then
             write (err,*) 'idir, i, j = ', idir, i, j
