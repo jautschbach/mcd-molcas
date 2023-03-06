@@ -4,9 +4,20 @@
 lala*
 graph.dat
 impulses.dat
+
+# ignore temporary files
+*.swp
+tests/*-temp
+logfile
+
+# ignore compiled binaries
 plot-spectrum
 mcd-c-molcas
 mcd-a-molcas
 mcd-b-molcas
 mchd-c-molcas
-tests/*-temp
+plot-mcdspectrum
+transition-dip-rot
+
+# python cache
+__pycache__
