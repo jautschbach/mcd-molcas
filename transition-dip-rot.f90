@@ -66,20 +66,17 @@ program transition_dip_rot
   ! ============================================================================
 
   write (out,'(/1x,a/)') 'Transition Dipole and Rotatory Strengths'
-  
-  ! debug level:
-
-  dbg = 0
 
   ! N.B. the namelist variables set below are defined in namelist-module.F90
 
-  ! by default, we want to use spin, angmom, dipole, quadrupole, velocity
+  ! by default, we want to use spin, angmom, dipole, quadrupole,
+  ! and length representation for the latter two
 
   nospin    = .false. 
   noangmom  = .false.
   nodip     = .false.
   noquad    = .false.
-  novel     = .false.
+  novel     = .true.
   
   print_d = .false. ! options for printing detailed data
   print_m = .false. ! for analysis purposes
@@ -112,7 +109,11 @@ program transition_dip_rot
   kT = temp * boltzcm
   if (kT.le.zero) stop 'kT < 0. Aborting'
 
-  ! sanity checks: 
+  ! sanity checks:
+
+  if (.not.novel) then
+    stop 'novel option set to false. use transition-vel-rot instead'
+  end if
 
   if (temp.le.zero .or. nstates.le.degen .or. &
     (nstates - skip).le.degen .or. skip.lt.0) then

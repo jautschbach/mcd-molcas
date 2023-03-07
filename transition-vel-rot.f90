@@ -32,7 +32,7 @@ program transition_vel_rot
   
   complex(KREAL), dimension(:,:), allocatable :: cdlist, crlist
   
-  complex(KREAL) :: cd, ctmp, cr, pred, prer, dipvelif(3), dipvelfi(3)
+  complex(KREAL) :: cd, ctmp, cr, pred, prer, dipvelif(3), dipvelfi(3), elquadvelofi(6) 
 
   integer(KINT) :: idir, jdir, kdir, i, j
 
@@ -47,10 +47,6 @@ program transition_vel_rot
   ! ============================================================================
 
   write (out,'(/1x,a/)') 'Transition Dipole and Rotatory Strengths (VEL)'
-  
-  ! debug level:
-
-  dbg = 0
 
   ! N.B. the namelist variables set below are defined in namelist-module.F90
 
@@ -144,9 +140,6 @@ program transition_vel_rot
       'data with the length form of the dipole, assuming that you',&
       ' have the corresponding data files available.'
 
-  ! given the putput we just wrote, might as well disable the havedip option
-  havedip = .false.
-
   if (polnotprop) then
     write (out,'(/1x,66(''*'')/4(1x,a/),1x,66(''*''))') &
       'POLNOTPROP option set. The printed oscillator strengths correspond',&
@@ -190,11 +183,7 @@ program transition_vel_rot
   ! read_data_files, the quadrupole is traceless.
   ! -----------------------------------------------------------------
   
-  if (havedip) then
-    allocate (eldip(nstates,nstates,3))
-    eldip = 0
-  end if
-  if (havevel) then
+  if (havevel .and. havedip) then
     allocate (velocity(nstates,nstates,3))
     velocity = 0
   end if
@@ -202,9 +191,9 @@ program transition_vel_rot
     allocate (magdip(nstates,nstates,3))
     magdip = 0
   end if
-  if (havequad) then
-    allocate (elquad(nstates,nstates,6))
-    elquad = 0
+  if (havequad .and. havevel) then
+    allocate (veloquad(nstates,nstates,6))
+    veloquad = 0
   end if
 
   call read_data_files
@@ -359,7 +348,6 @@ program transition_vel_rot
           ! elements.  We take care of taking the imaginary part of
           ! the electric-magnetic dipole contribution by multiplying
           ! it with -i = -sqm1
-          ! NOTE: AT PRESENT ONLY ISOTROPIC R IS SUPPORTED FOR VELOCITY 
 
           if ( (havespin.or.haveang)) then
             ctmp = prer *  &
@@ -369,8 +357,8 @@ program transition_vel_rot
             cr = cr - sqm1 * ctmp
           end if
 
-          ! now add the quadrupole part. We take Equation (9) from my
-          ! paper ChemPhysChem 12 (2011), 3224, for alpha = beta = idir,
+          ! now add the quadrupole part. We take Equation (9) from 
+          ! ChemPhysChem 12 (2011), 3224, for alpha = beta = idir,
           ! gamma = jdir, delta = kdir,
           ! and adjust for the lack of a factor 3/2 in the quadrupole terms
           ! with an overall prefactor of (1/2)(1/3)(3/2) = 1/4.
@@ -378,20 +366,27 @@ program transition_vel_rot
           ! I leave the equation below in case we want to get the whole
           ! rotatory strength tensor.
 
-          ! NOT YET SUPPORTED
-!!$          if (havequad .and. havevel) then
-!!$            do jdir = 1,3
-!!$              do kdir = 1,3
-!!$                ctmp = prer * fourth * deltae * ( &
-!!$                  lc(idir,jdir,kdir) * eldip(is,js,jdir) * &
-!!$                  elquad(js,is,qindex(kdir,idir)) + &
-!!$                  lc(idir,jdir,kdir) * eldip(is,js,jdir) * &
-!!$                  elquad(js,is,qindex(kdir,idir)) )
-!!$                cr = cr + ctmp
-!!$              end do
-!!$            end do
-!!$          end if
-          
+          ! but before that, let's convert the electric quadrupole
+          ! velocity integrals (p_a r_b + r_a p_b) into the quadrupole transition 
+          ! moment in velocity gauge, via
+          ! <i | p_a r_b + r_a p_b | f> = i(E_i - E_f) <i | Q_ab | f>
+          ! again, if we swap the state indices, we're supposed to change
+          ! deltae to -deltae, too, with deltae = E_f - E_i
+
+          if (havequad .and. havevel) then
+            ! elquadveloif(:) = sqm1 * veloquad(is,js,:) / deltae ! not used
+            elquadvelofi(:) = -sqm1 * veloquad(js,is,:) / deltae 
+            do jdir = 1,3
+              do kdir = 1,3
+                ctmp = prer * fourth * deltae * ( &
+                  lc(idir,jdir,kdir) * dipvelif(jdir) * &
+                  elquadvelofi(qindex(kdir,idir)) + &
+                  lc(idir,jdir,kdir) * dipvelif(jdir) * &
+                  elquadvelofi(qindex(kdir,idir)) )
+                cr = cr + ctmp
+              end do
+            end do
+          end if
           
         end do ! i1
       end do ! j1
@@ -529,10 +524,9 @@ program transition_vel_rot
     deglist, cdlist, crlist, levels, elevel, accl)
 
   if (havespin .or. haveang) deallocate(magdip)
-  if (havedip) deallocate(eldip)
-  if (havequad) deallocate(elquad)
-  if (havevel) deallocate(velocity)
-  
+  if (havequad .and. havevel) deallocate(veloquad)
+  if (havevel.and.havedip) deallocate(velocity)
+
   stop 'normal termination of transitions-dip-rot'
   
   ! ============================================================================

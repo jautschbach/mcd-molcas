@@ -26,8 +26,8 @@ FFLAGS = $(OMP)
 
 .SUFFIXES: .f .F .F90 .f90
 
-BIN = mcd-c-molcas mchd-c-molcas mcd-a-molcas \
-      mcd-b-molcas transition-dip-rot transition-vel-rot plot-mcdspectrum 
+BIN = mcd-c-molcas mchd-c-molcas mcd-a-molcas mchd-a-molcas\
+      mcd-b-molcas transition-dip-rot transition-vel-rot plot-mcdspectrum
 
 OBJ = 
 
@@ -40,6 +40,7 @@ OBJ90 = definitions.o \
         print-rec-matrix.o \
         diagonalize-matrix.o \
         diagonalize-magdip-gs.o \
+        diagonalize-magdip-all.o \
         print-constants.o \
         vector-product.o \
         process-energies.o
@@ -62,6 +63,9 @@ mcd-a-molcas: $(OBJ) $(OBJ90) mcd-a-molcas.o
 
 mcd-b-molcas: $(OBJ) $(OBJ90) mcd-b-molcas.o
 	$(LINKER) -o mcd-b-molcas mcd-b-molcas.o $(OBJ) $(OBJ90) $(FFLAGS) $(FLIB)
+
+mchd-a-molcas: $(OBJ) $(OBJ90) mchd-a-molcas.o
+	$(LINKER) -o mchd-a-molcas mchd-a-molcas.o $(OBJ) $(OBJ90) $(FFLAGS) $(FLIB)
 
 mchd-c-molcas: $(OBJ) $(OBJ90) mchd-c-molcas.o
 	$(LINKER) -o mchd-c-molcas mchd-c-molcas.o $(OBJ) $(OBJ90) $(FFLAGS) $(FLIB)

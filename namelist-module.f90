@@ -14,30 +14,35 @@ module namelist_module
   real(KREAL) :: temp, ddelta
   
   integer(KINT) :: degen, nstates, nlevels, skip, &
-    states_sos
+    states_sos, debuglevel
   
   logical :: magdiag, nospin, noangmom, nodip, noquad, novel, &
-    print_d, print_m, print_q, theta, usemag, polnotprop
+    print_d, print_m, print_q, theta, usemag, polnotprop, &
+    oldspiny
   
   namelist /options/ degen, temp, nstates, skip, magdiag, ddelta, &
+    debuglevel, &
     nospin, noangmom, nodip, noquad, novel, print_d, print_m, print_q, &
-    theta, states_sos, usemag, polnotprop
+    theta, states_sos, usemag, polnotprop, oldspiny
 
   ! populate namelist with default options at compile time
 
   data &
     degen, temp, nstates, states_sos, skip, magdiag, ddelta, &
+    debuglevel, &
     nospin, noangmom, nodip, noquad, novel, &
     print_d, print_m, print_q, &
-    theta, usemag, polnotprop / &
+    theta, usemag, polnotprop, oldspiny / &
     0, 0.0_KREAL , 0, 0, 0, .false., 1E-5_KREAL, &
+    0, & 
     .true., .true.,  .true., .true., .true., &
     .false., .false., .false., &
-    .false., .false., .false. /
+    .false., .false., .false. , .false. /
 
   save degen, temp, nstates, states_sos, skip, magdiag, ddelta, &
+    debuglevel, & 
     nospin, noangmom, nodip, noquad, novel, print_d, print_m, print_q, &
-    theta, usemag, polnotprop
+    theta, usemag, polnotprop, oldspiny
   
 end module namelist_module
   

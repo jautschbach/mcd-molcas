@@ -13,9 +13,10 @@ subroutine read_options
 
   use namelist_module
 
+  use shared_variables
+
   implicit none
 
-  integer(KINT) :: ios
 
   ! ===========================================================================
 
@@ -32,6 +33,10 @@ subroutine read_options
   end if
 
   close (iu_op)
+
+  dbg = debuglevel
+
+  if (dbg>0) write (out,'(/1x,a,i2)') 'Debug level = ',dbg 
   
   return
   

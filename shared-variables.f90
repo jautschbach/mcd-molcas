@@ -18,7 +18,7 @@ module shared_variables
   integer(KINT), dimension(:), allocatable :: deglist, levels, accl
   
   complex(KREAL), dimension(:,:,:), allocatable :: magdip, eldip, &
-    elquad, angmom, velocity
+    elquad, angmom, velocity, veloquad
 
   ! other variables:
   
@@ -39,7 +39,9 @@ module shared_variables
 
   save deglist, levels, accl
 
-  save magdip, eldip, elquad, velocity
+  save magdip, eldip, elquad, velocity, veloquad
+
+  save dbg
 
 end module shared_variables
   
