@@ -1,0 +1,45 @@
+name: Pull request
+
+on:
+  pull_request:
+
+jobs:
+  build:
+    strategy:
+      fail-fast: false
+      matrix:
+        os: [ubuntu-latest, ubuntu-20.04]
+        gcc_v: [9,10,11,12]
+        python-version: ['3.9']
+        exclude:
+          - gcc_v: 12
+            os: ubuntu-20.04
+          - gcc_v: 11
+            os: ubuntu-20.04
+    env:
+      FC: gfortran
+      GCC_V: ${{ matrix.gcc_v }}
+    runs-on: ${{ matrix.os }}
+    steps:
+      - name: Checkout Code
+        uses: actions/checkout@v2
+      - name: Setup Python
+        uses: actions/setup-python@v1
+        with:
+          python-version: ${{ matrix.python-version }}
+      - name: Install python dependencies
+        run: |
+          pip install --upgrade -r tests/python-requirements.txt
+      - name: Install compiler and libraries
+        run: |
+          sudo apt-get install -y gfortran-${GCC_V}
+          sudo apt-get install -y libblas-dev liblapack-dev make
+      - name: Compile
+        run: |
+          make -f Makefile.gnu FC=gfortran-${GCC_V} \
+            FC90=gfortran-${GCC_V} LINKER=gfortran-${GCC_V}
+      - name: Run the tests
+        run: |
+          source tag.sh
+          $MCDHOME/tests/run-mcd-tests.sh
+
