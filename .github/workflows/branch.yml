@@ -6,7 +6,7 @@ on:
       [master, main]
 
 jobs:
-  build:
+  build-gcc:
     strategy:
       fail-fast: false
       matrix:
@@ -40,6 +40,59 @@ jobs:
         run: |
           make -f Makefile.gnu FC=gfortran-${GCC_V} \
             FC90=gfortran-${GCC_V} LINKER=gfortran-${GCC_V}
+      - name: Run the tests
+        run: |
+          source tag.sh
+          $MCDHOME/tests/run-mcd-tests.sh
+
+  build-intel-oneapi:
+    strategy:
+      fail-fast: false
+      matrix:
+        os: [ubuntu-latest, ubuntu-20.04]
+        python-version: ['3.9']
+    env:
+      CC: icx
+      CXX: icpx
+      FC: ifort
+      BASE_DIR: /opt/intel/oneapi/compiler/latest/linux
+      INSTALL_PATH: /opt/intel/oneapi/compiler/latest/linux/bin/intel64
+      MKLROOT: /opt/intel/oneapi/mkl/latest
+      LD_LIBRARY_PATH: /opt/intel/oneapi/compiler/latest/linux/compiler/lib/intel64:/opt/intel/oneapi/compiler/latest/linux/ipp/lib/intel64
+    runs-on: ${{ matrix.os }}
+    steps:
+      - name: Checkout Code
+        uses: actions/checkout@v2
+      - name: Setup Python
+        uses: actions/setup-python@v1
+        with:
+          python-version: ${{ matrix.python-version }}
+      - name: Install python dependencies
+        run: |
+          pip install --upgrade -r tests/python-requirements.txt
+      - name: Add Intel oneAPI to apt
+        run: |
+          wget https://apt.repos.intel.com/intel-gpg-keys/GPG-PUB-KEY-INTEL-SW-PRODUCTS-2023.PUB
+          sudo apt-key add GPG-PUB-KEY-INTEL-SW-PRODUCTS-2023.PUB
+          rm GPG-PUB-KEY-INTEL-SW-PRODUCTS-2023.PUB
+          echo "deb https://apt.repos.intel.com/oneapi all main" | sudo tee /etc/apt/sources.list.d/oneAPI.list
+          sudo apt-get update
+      - name: Install Intel oneAPI
+        run: |
+          sudo apt-get install intel-oneapi-mkl-devel \
+                intel-oneapi-compiler-fortran
+      - name: Setup Intel oneAPI environment
+        run: |
+          source /opt/intel/oneapi/setvars.sh
+      - name: Debugging
+        run: |
+          echo "Checking LD_LIBRARY_PATH"
+          echo $LD_LIBRARY_PATH
+      - name: Compile
+        run: |
+          make -f Makefile.ifort FC=${{ env.INSTALL_PATH }}/ifort \
+                  FC90=${{ env.INSTALL_PATH }}/ifort \
+                  LINKER=${{ env.INSTALL_PATH }}/ifort
       - name: Run the tests
         run: |
           source tag.sh
