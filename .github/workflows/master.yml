@@ -98,3 +98,40 @@ jobs:
           source tag.sh
           $MCDHOME/tests/run-mcd-tests.sh
 
+  publish-docs:
+    runs-on: ubuntu-latest
+    if: ${{ always() }}
+    name: Publish Docs
+    steps:
+      - name: Checkout Code
+        uses: actions/checkout@v2
+      - name: Setup Python env
+        uses: actions/setup-python@v2
+        with:
+          python-version: 3.8
+      - name: Install Pandoc
+        run: sudo apt-get install -y pandoc
+      - name: Debug
+        run: |
+          pwd
+          ls -la
+          ls tests
+      - name: Install Dependencies
+        run: |
+          pip install --upgrade -r tests/python-requirements.publish.txt -r tests/python-requirements.txt
+      - name: Sphinx build
+        run: |
+          sphinx-build docs/source _build
+      - name: Debug
+        run: |
+          pwd
+          ls -la
+      - name: Deploy
+        uses: peaceiris/actions-gh-pages@v3
+        if: ${{ github.event_name == 'push' && github.ref == 'refs/heads/master' }}
+        with:
+          publish_branch: gh-pages
+          github_token: ${{ secrets.GITHUB_TOKEN }}
+          publish_dir: _build/
+          force_orphan: true
+

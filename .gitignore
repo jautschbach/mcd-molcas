@@ -21,3 +21,7 @@ transition-dip-rot
 
 # python cache
 __pycache__
+
+# Sphinx documentation build
+docs/build
+
