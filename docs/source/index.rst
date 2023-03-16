@@ -10,7 +10,10 @@ Welcome to MCD-Molcas's documentation!
    :maxdepth: 2
    :caption: Contents:
 
+Research publications
+=====================
 
+- *Phys. Chem. Chem. Phys.*, **2017**, 19, 17300-17313. DOI: `10.1039/C7CP02572F <https://doi.org/10.1039/C7CP02572F>`_
 
 Indices and tables
 ==================
