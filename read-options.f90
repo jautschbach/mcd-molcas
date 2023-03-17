@@ -1,15 +1,22 @@
 
 subroutine read_options
 
+  ! this routine is part of J. Autschbach's set of programs to process
+  ! Molcas data for the generation of various types of spectral
+  ! intensities
+  
+  ! (c) 2019-2022 Jochen Autschbach, SUNY Buffalo
+
   use definitions
 
   use constants_parameters
 
   use namelist_module
 
+  use shared_variables
+
   implicit none
 
-  integer(KINT) :: ios
 
   ! ===========================================================================
 
@@ -26,6 +33,10 @@ subroutine read_options
   end if
 
   close (iu_op)
+
+  dbg = debuglevel
+
+  if (dbg>0) write (out,'(/1x,a,i2)') 'Debug level = ',dbg 
   
   return
   

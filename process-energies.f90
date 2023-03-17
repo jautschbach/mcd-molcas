@@ -24,17 +24,19 @@ subroutine process_energies (nstates, nlevels, do_group, &
 
   ! local variables
 
-  integer(KINT) :: i, j, ios
+  integer(KINT) :: i, j, ios, dbg
   logical :: found
   character(len=1) :: junk
 
   real(KREAL) :: waveno, rtemp
   waveno(rtemp) = rtemp * au2cm
 
-  integer :: dbg
-
   ! ===========================================================================
 
+  ! in this routine, the debug level is set manually at compile time, so
+  ! we don't get a mess with variable definitions in some of the
+  ! modules
+  
   dbg = 0
   
   ! --------------------------------------
@@ -261,6 +263,15 @@ subroutine process_energies (nstates, nlevels, do_group, &
     write (out,'(1x,i5,a,1x,f15.8,3x,f15.8,3x,i5)') i,':', &
       elevel(i),waveno(elevel(i)),levels(i)
   end do
+
+  if(dbg>0) then
+    write (out,*) 'nlevels = ',nlevels
+    write (out,'(1x,a/6(1x,i5))') 'accl:',accl(1:nlevels)
+    write (out,'(1x,a/6(1x,i5))') 'levels:',levels(1:nlevels)
+  end if
+  
+  write (out,'(1x,a/6(1x,i5))') 'deglist',deglist
+  
 
   write (out,*)
   

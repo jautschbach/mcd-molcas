@@ -47,10 +47,6 @@ program mcd_b_molcas
 
   write (out,'(/1x,a/)') 'MCD B-Term PROGRAM'
   
-  ! debug level:
-
-  dbg = 0
-
   if (dbg>0) then
     write (out,*) 'namelist default values'
     write (out,options)

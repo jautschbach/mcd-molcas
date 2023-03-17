@@ -1,51 +1,60 @@
-program mcd_c_molcas
+program mchd_a_molcas
 
-  ! calculate MCD C-term intensities from Molcas data
+  ! calculate MChD A-term intensities from Molcas data
+  ! (magnetochiral dichroism) NOT YET READY, NOT DOCUMENTED***
 
-  ! (c) 2018, 2019, Jochen Autschbach, SUNY Buffalo
+  ! (c) 2022, Jochen Autschbach, SUNY Buffalo
 
-  ! Implementation according to Bolvin, Inorg. Chem. 46 (2007), 417,
-  ! Equations (16) and (17), and Piepho & Schatz (1983), pages 84 - 86.
+  ! Implementation according to equations 6.4.2c and 6.4.2f on page on
+  ! page 328 of Barron's Molecular Light Scattering anf Optical
+  ! Activity, 2nd edition
 
-  ! the code, as set up, requires a modified version of Molcas that
-  ! writes dipole, spin, and angular momentum matrix elements to files
-  ! named dipole-X.txt, spin-X.txt and angmom-X.txt, rescpectively,
-  ! with X = 1,2,3 for the Cartesian components x, y, z. We did this
-  ! for two reasons: 1. convenience 2. to get nearly machine precision
-  ! data instead of parsing the Molcas output.
+  ! the code, as set up, requires a modified version of Molcas that writes
+  ! dipole, spin, and angular momentum matrix elements to files named
+  ! dipole-X.txt, spin-X.txt and angmom-X.txt, rescpectively, with
+  ! X = 1,2,3 for the Cartesian components x, y, z. We did this for two
+  ! reasons: 1. convenience 2. to get machine precision data instead of
+  ! parsing the Molcas output.
 
   ! this programs's options are controlled by a Fortran namelist input.
   ! the namelist is called 'options' and read from a file called
   ! 'options.dat'. For details see the code & comments below.
+
 
   use definitions
 
   use namelist_module
 
   use constants_parameters
-
+  
   use shared_variables
   
   implicit none
+  
+  complex(KREAL), dimension(:,:,:), allocatable :: eldip_orig, magdip_orig, &
+  elquad_orig
 
-  complex(KREAL), dimension(:,:,:), allocatable :: eldip_orig, magdip_orig
+  ! complex(KREAL), dimension(:), allocatable :: ctav, clist ! should be deleted
 
-  complex(KREAL), dimension(:), allocatable :: ctav, clist
-   
-  complex(KREAL) :: ct, cttmp, prefac, vec(3,3)
+  ! complex(KREAL) :: ct, cttmp, prefac, vec(3,3) ! should be deleted
 
-  integer(KINT) :: idir, jdir, i, i1, i2, j
+  complex(KREAL), dimension(:), allocatable :: cgav, cglist, caav, calist
 
-  integer(KINT) ::  ilevel, jlevel, is1, is2, js
+  complex(KREAL) :: cg, ctmp, ca, preg, prea
 
+  integer(KINT) :: idir, jdir, kdir, i, i1, i2, j, j1, j2
+  
+  integer(KINT) ::  ilevel, jlevel, is1, is2, js, js1, js2
+ 
   ! in-line functions
 
-  real(KREAL) :: waveno
+  real(KREAL) :: waveno, evolt
   waveno(rtemp) = rtemp * au2cm
+  evolt(rtemp) = rtemp * au2ev
 
   ! ============================================================================
 
-  write (out,'(/1x,a/)') 'MCD C-Term PROGRAM'
+  write (out,'(/1x,a/)') 'MChD A-Term PROGRAM'
   
   if (dbg>0) then
     write (out,*) 'namelist default values'
@@ -59,22 +68,22 @@ program mcd_c_molcas
   nospin    = .false. 
   noangmom  = .false.
   nodip     = .false.
-  noquad    = .true.
-  
+  noquad    = .false.
+
   print_d = .false. ! options for printing detailed data
   print_m = .false. ! for analysis purposes
+  print_q = .false.
 
-  usemag = .false. ! determines the C-term by replacing the electronic dipole with the magnetic dipole.
-  !The contribution of the magetic dipole is usually negectable.
-
-  magdiag = .false. ! the original version of this code required a
-  ! diagonalization of the magnetic moment operator in the basis of 
-  ! the degenerate ground state components.
-  ! The default is now to use the equations from Piepho & Schatz, pp.
-  ! 84 - 86, which bypass that diagonalization.
+  magdiag = .false. ! 
+  ! if true, require that degenerate states diagonalize
+  ! the Zeeman operator. The option is ignored in this code even if .true.
 
   ! default delta criterion for degeneracy, in au
   ddelta = 1E-5_KREAL
+
+  usemag = .false. ! determines the A-term by replacing the electronic dipole with the magnetic dipole.
+  !The contribution of the magetic dipole is usually negectable. This has been implemented for all terms
+  !by only debugged for the C-term
 
   ! default options below will lead to a crash, this is to make sure
   ! that actual data for the electronic states are given in the input file:
@@ -109,6 +118,10 @@ program mcd_c_molcas
       'one or more namelist parameters in options file are unreasonable'
   end if
 
+  ! Should be implemented
+  ! if (magdiag) write (out,'(/1x,a/)') &
+  !  '*** magdiag set .T. in options file, but not available here. Disabled.'
+
   if (nospin .and. noangmom .and. nodip .and. noquad) then
     stop 'all NO-operator options set. There is nothing to do ...'
   end if
@@ -131,20 +144,17 @@ program mcd_c_molcas
   havespin = .not.nospin    ! we will use spin matrices
   haveang  = .not.noangmom  ! we will use angular momentum matrices
   havedip  = .not.nodip     ! we will use the el. dipole terms
-  havequad = .not.noquad    ! not relevant here
-
-  ! note: below we will not further check for havedip and haveang.or.havespin,
-  ! as there is nothing to do in either case, and we have already an error
-  ! exit in that situation. And havequad will be ignored.
+  havequad = .not.noquad    ! we will use the quadrupole terms
 
   ! print header:
 
   write (out, '(/1x,a/1x,a,1x,f7.2/1x,a,1x,f12.6/)') &
-    'MCD C-term calculation','T =',temp,'kT in cm**(-1)/K:',kT
-
+    'MChD A-term calculation','T =',temp,'kT in cm**(-1)/K:',kT
+  
   if (nospin) write (out,'(1x,a/)') '*** not including S contributions'
   if (noangmom) write (out,'(1x,a/)') '*** not including L contributions'
-
+  if (nodip) write (out,'(1x,a/)') '*** not including dipole contributions'
+  if (noquad) write (out,'(1x,a/)') '*** not including quad. contributions'
   
   ! -----------------------------------------
   ! allocate memory other than scratch arrays
@@ -167,44 +177,53 @@ program mcd_c_molcas
   ! skip to match the state grouping. However, if the GS is degenerate
   ! but not grouped properly the calculation will probably fail.
 
-  ! for C-term spectra, degen must be > 1
-
-  if (degen.lt.2) stop &
-    'For C-term spectra GS degeneracy must be >= 2. Not detected or set'
-
   ! -----------------------------------------------------------------
   ! read transition moment data from the data files, and assemble the
   ! magnetic moment operator matrix elements from (with u = x,y,z)
-  ! L_u + 2 S_u. We DO NOT attach the factor
-  ! -e\hbar / (2 m_e) = -1/2 au, to correspond to Piepho & Schatz.
-  ! We operate under the assumption that the electric dipole elements
-  ! include  -e = -1 au factors.  As we are dealing with
+  ! L_u + 2 S_u. We also attach the factor
+  ! -e\hbar / (2 m_e) = -1/2 au.
+  
+  ! We operate under the assumption that the electric dipole and
+  ! quadrupoles include -e = -1 au factors.  As we are dealing with
   ! transition dipoles, there is no need to remove any nuclear
-  ! contributions to the electric moments. 
+  ! contributions to the electric moments.  Upon return from
+  ! read_data_files, the quadrupole is traceless, and it does NOT
+  ! contain the factor of 3/2 that it has in Barron's book. We
+  ! therefore fix that, too.
   ! -----------------------------------------------------------------
   
-  allocate (eldip(nstates,nstates,3))
-  eldip = 0
+  if (havedip) then
+    allocate (eldip(nstates,nstates,3))
+    eldip = 0
+  end if
   
-  allocate (magdip(nstates,nstates,3))
-  magdip = 0
-
+  if (havespin .or. haveang) then
+    allocate (magdip(nstates,nstates,3))
+    magdip = 0
+  end if
+  
   if (havequad) then
-    write (out,*) &
-      'WARNING: noquad=.F. in options file, but quadrupole terms not used.'
-    noquad = .true.
+    allocate (elquad(nstates,nstates,6))
+    elquad = 0
     havequad = .false.
   end if
 
   call read_data_files
 
-  
+  if (havespin .or. haveang) magdip = -half * magdip
+
+  if (havequad) elquad = elquad * three * half
+
+  ! note: below we will not further check for havedip and haveang.or.havespin,
+  ! as there is nothing to do otherwise, and we have already an error
+  ! exit in that situation.
+
   ! ----------------------------
   ! Main part of the computation
   ! ----------------------------
 
-  write (out,'(//1x,40(''-'')/1x,a/)') 'C-term calculation'
-
+  write (out,'(//1x,40(''-'')/1x,a/)') 'A-term calculation'
+  
   ! if magdiag is set, then save the transition dipole matrices in the
   ! original basis of states in <array>_orig so we can restore the
   ! arrays for each run of idir = 1,3. Not absolutely needed, but convenient.
@@ -215,24 +234,36 @@ program mcd_c_molcas
     
     eldip_orig  = eldip
     magdip_orig = magdip
+    
+    if (havequad) then
+      allocate (elquad_orig(nstates,nstates,6))
+      elquad_orig  = elquad
+    end if
+    
   end if
   
-  allocate (ctav(nlevels), clist(nlevels))  
+  allocate (cgav(nlevels), cglist(nlevels), caav(nlevels), calist(nlevels))
 
-  ! in Piepho and Schatz, p. 88, 
-  ! the prefactor for the C-term is -i/(degeneracy of ground state)
+  ! the prefactor for the A(G)-term is 1/(degeneracy of ground state GS)
+  ! the prefactor for the A(A)-term is omega/(15 times degeneracy of GS)
+  ! We do NOT include the omega here in A(A).
+  ! We do include a factor of three, so that the components for different
+  ! B-field directions AVERAGE, instead of add up, to the isotropic
+  ! average given by Barron.
   
-  prefac = -sqm1 / (degen)
-  if (dbg>0) write (out,*) 'prefac = ', prefac
-  
-  ctav(:) = c0 ! this array will accumulate the isotropic C-term
+  preg = three * cp1 / degen
+  rtemp = three * oneby15
+  prea = rtemp * cp1 / degen
 
-  ! create output files, open, and write namelist
-  ! input for plot program
+  if (dbg>0) write (out,*) 'preg, prea = ', preg, prea
+  
+  cgav(:) = c0 ! initialize isotropic A(G)-terms with complex zeros
+  caav(:) = c0 ! initialize isotropic A(A)-term
+
 
   do idir = 0,3
     
-    write(outfile(idir),'(a,i1)') 'mcd-c-spectrum-',idir
+    write(outfile(idir),'(a,i1)') 'mchd-a-spectrum-',idir
     open (iu_out(idir), file=trim(outfile(idir)), status='unknown', iostat=ios)
     if (ios /= 0) then
       write (err,*) 'problem opening file '//trim(outfile(idir))
@@ -240,14 +271,14 @@ program mcd_c_molcas
     end if
     
     ntemp = nlevels - skip - 1
-    !write (out,*) 'ntemp, nlevels, skip', ntemp, nlevels, skip
     if (ntemp.lt.1) stop 'attempting to print data for less than 1 level'
-        write(iu_out(idir),'(a,i7,a/1x,a,i7,a,f7.2,a,l,a///a)') &
-      '&plot nsyme(1)=',ntemp, &
+      write(iu_out(idir),'(a,i7,a/,a,i7,a,f7.2,a,l,a/a/a/a)') &
+     '# &plot nsyme(1)=',ntemp, &
       ', ndegen(1)=1, sigma=1000, sharpen=1, npoints=300,', &
-      'nexcit=',ntemp,', invert=F, waveno=T, term=''C'', temp=',temp,&
+      '# nexcit=',ntemp,', invert=F, waveno=T, term=''A'', temp=',temp,&
       ', theta=',theta,' /', &
-      '#  E(cm**-1), Re-C (au), Re-C (D**2), Im-C (au), Im-C (D**2)'
+      '# the last 2 columns should be effectively zero', &
+      '#  E(cm**-1), Re-A(G), Im-A(A'')/omega, Im-A(G)/omega, Re-A(A'')'
 
   end do ! idir
   
@@ -259,21 +290,23 @@ program mcd_c_molcas
 
     write (out,'(1x,a,1x,i1/)') 'B-field direction',idir
     
+    
+    write (out,'(/1x,a,1x,a/1x,a/)') 'MChD A-terms for 0 -> f',&
+    & 'in au' ,&
+    & 'The data will be written to file '//trim(outfile(idir))
 
-    write (out,'(/1x,a,1x,a/1x,a/1x,a/)') 'C-terms for 0 -> f',&
-      & 'in au and  Debye**2' , 'The&
-      & Im part should be zero and is printed for debug purposes',&
-      & 'The data will be written to file '//trim(outfile(idir))
 
     ! select GS components to diagonalize B(idir) Zeeman Hamiltonian if
     ! magdiag is set
-
+    
     if (magdiag) then
       
       eldip = eldip_orig
       magdip = magdip_orig
-    
-      call diagonalize_magdip_gs(idir)
+      if (havequad) elquad = elquad_orig
+      
+      ! call diagonalize_magdip_gs(idir)
+      call diagonalize_magdip_all(idir)
       
       write (out,'(1x,a/)') 'Ground state now diagonalizes Zeeman operator'
       write (out,'(1x,a)') 'Complex magnetic moment matrix elements for GS:'
@@ -286,7 +319,8 @@ program mcd_c_molcas
       write (out,*)
     end if ! magdiag
     
-    clist(:) = c0 ! C-term
+    cglist(:) = c0 ! initialize A(G) terms with complex zeros
+    calist(:) = c0 ! initialize A(A) terms
     
     if (skip > 0) then
       write (out,'(1x,a,1x,i7,1x,a/)') 'The lowest',skip,'excited levels&
@@ -305,9 +339,9 @@ program mcd_c_molcas
         skip1 = skip1 - 1
         cycle
       end if
-      
-      ct = c0
-      !write(out,*) 'ct set to zero'
+
+      cg = c0 ! set to zero
+      ca = c0
       
       ! ------------------------------
       ! loop over EL components
@@ -318,7 +352,7 @@ program mcd_c_molcas
         js = accl(jlevel) + j ! refers to un-grouped set of states
         
         if (js.gt.nstates .or. js.lt.1) &
-          stop 'js out of bounds'                                   
+          stop 'js1 out of bounds'                                   
         
         ! ----------------------------------------
         ! single or double loop over GL components
@@ -336,54 +370,80 @@ program mcd_c_molcas
           
           if (magdiag) then
             
-            ! assume the Zeeman operator is diagonal in the GS:
-            
+            ! assume the Zeeman operator is diagonal in the GS:     !? and the ES ???
+
+            ! (a) calculate A(G)
+
             do jdir = 1,3
-              vec(jdir,1) = eldip(is1,js,jdir)
-              vec(jdir,2) = eldip(js,is1,jdir)
-              vec(jdir,3) = c0
-            end do
-            
-            call vector_product_cmplx(vec(:,1),vec(:,2),vec(:,3))
-            
-            cttmp = prefac * magdip(is1,is1,idir) * vec(idir,3)
-            
-            ct = ct + cttmp
-            
-          else
-            
-            ! Piepho & Schatz, pp. 84 - 86: no need to diagionalize
-            ! the Zeeman operator
-            
-            do i2 = 1, levels(ilevel)
-              
-              is2 = accl(ilevel) + i2
-              
-              if (is2.gt.nstates .or. is2.lt.1) &
-                stop 'is2 out of bounds'
-              
-              do jdir = 1,3
-                vec(jdir,1) = eldip(is1,js,jdir)
-                vec(jdir,2) = eldip(js,is2,jdir)
-                vec(jdir,3) = c0
+              do kdir = 1,3
+                ctmp = preg * lc(jdir,kdir,idir) * &   ! alpha = jdir, beta = kdir, gamma =idir ?
+                  (magdip(js,js,idir) - magdip(is1,is1,idir)) * &
+                  eldip(is1,js,jdir) * magdip(js,is1,kdir)
+                cg = cg + ctmp
               end do
+            end do
+
+            ! (b) calculate A(A)
+
+            do jdir = 1,3
+              ctmp = prea * ( magdip(js,js,idir) - &  ! here alpha = jdir, beta = idir
+                magdip(is1,is1,idir) ) * &
+                ( three * eldip(is1,js,jdir) * &
+                elquad(js,is1,qindex(jdir,idir)) - &
+                eldip(is1,js,idir) * &
+                elquad(js,is1,qindex(jdir,jdir)) )
+              ca = ca + ctmp
+            end do ! jdir
+            
+          else  ! magdiag necessary no ?
+            stop 'Not yet supported'
+
+!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!
+!      should be ok until here                                                !
+!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!
+            ! do i2 = 1, levels(ilevel)
               
-              call vector_product_cmplx(vec(:,1),vec(:,2),vec(:,3))
+            !   is2 = accl(ilevel) + i2
               
-              cttmp = prefac * magdip(is2,is1,idir) * vec(idir,3)
-              !write(out,*) 'is1,is2,js1,rtemp:',is1,is2,js1,rtemp
-              ct = ct + cttmp
+            !   if (is2.gt.nstates .or. is2.lt.1) &
+            !     stop 'is2 out of bounds'
               
-            end do ! i2
+            !   ! (a) calculate C(G)
+              
+            !   do jdir = 1,3
+            !     do kdir = 1,3
+            !       ctmp = preg * lc(jdir,kdir,idir) * &
+            !         magdip(is2,is1,idir) * &
+            !         eldip(is1,js,jdir) * magdip(js,is2,kdir)
+            !       cg = cg + ctmp
+            !     end do
+            !   end do
+              
+            !   ! (b) calculate C(A)
+              
+            !   do jdir = 1,3
+            !     ctmp = prea * magdip(is2,is1,idir) * &
+            !       ( three * eldip(is1,js,jdir) * &
+            !       elquad(js,is2,qindex(jdir,idir)) - &
+            !       eldip(is1,js,idir) * &
+            !       elquad(js,is2,qindex(jdir,jdir)) )
+            !     ca = ca + ctmp
+            !   end do ! jdir
+              
+            ! end do ! i2
             
           end if ! magdiag
+          
         end do ! i1
       end do ! j1
       
-      clist(jlevel) = clist(jlevel) + ct
-      !write(out,*) 'clist for jlevel now',jlevel,clist(jlevel)
-      
-      ctav(jlevel) = ctav(jlevel) + ct/three        
+      cglist(jlevel) = cglist(jlevel) + cg
+      !write(out,*) 'cglist for jlevel now',jlevel,cglist(jlevel)      
+      cgav(jlevel) = cgav(jlevel) + third * cg
+
+      calist(jlevel) = calist(jlevel) + ca
+      !write(out,*) 'calist for jlevel now',jlevel,calist(jlevel)      
+      caav(jlevel) = caav(jlevel) + third * ca
       
     end do ! jlevel
     
@@ -395,54 +455,55 @@ program mcd_c_molcas
     
     do ilevel = 2+skip,nlevels
       deltae = elevel(ilevel) - elevel(1)
-      write (iu_out(idir),'(1x,f14.2,3x,4(f20.8,2x))') &
-        waveno(deltae), real(clist(ilevel)), real(clist(ilevel)*(debye**2)), &
-        aimag(clist(ilevel)), aimag(clist(ilevel)*(debye**2))
+      write (iu_out(idir),'(1x,f14.4,3x,4(f25.15,2x))') &
+        waveno(deltae), &
+        real(cglist(ilevel)),  aimag(calist(ilevel)), &
+        aimag(cglist(ilevel)), real(calist(ilevel))
     end do
-    
+
     
   end do ! idir = magnetic field directions
 
   ! ----------------------------------------
   ! done loop over magnetic field components
   ! ----------------------------------------
-  
+
   ! write isotropic spectrum to file
-  
+
   do ilevel = 2+skip,nlevels
     deltae = elevel(ilevel) - elevel(1)
-    write (iu_out(0),'(1x,f14.2,3x,4(f20.8,2x))') &
-      waveno(deltae), real(ctav(ilevel)), real(ctav(ilevel)*(debye**2)), &
-      aimag(ctav(ilevel)), aimag(ctav(ilevel)*(debye**2))
+    write (iu_out(0),'(1x,f14.4,3x,4(f25.15,2x))') &
+              waveno(deltae), &
+        real(cgav(ilevel)),  aimag(caav(ilevel)), &
+        aimag(cgav(ilevel)), real(caav(ilevel))
   end do
-  
-  
+
+
   ! --------------------
   ! close mcd data files
   ! --------------------
   
   do idir = 0,3
     close (iu_out(idir))
-    write (out,'(1x,a,1x,i7,1x,a,1x,a)') 'wrote C-term data for', &
+    write (out,'(1x,a,1x,i7,1x,a,1x,a)') 'wrote A-term data for', &
       nstates-degen-skip,'transitions to file',trim(outfile(idir))  
   end do
 
   call print_constants
-
+    
   
   ! --------------------------------------------------
   ! deallocate arrays, clean up if necessary, and exit
   ! --------------------------------------------------
-  
-  deallocate(energy, eldip, magdip, ctav, &
-    deglist, clist, levels, elevel, accl)
 
-  if (magdiag) deallocate(eldip_orig, magdip_orig)
-  
-  stop 'normal termination of mcd-c'
+  deallocate(energy, eldip, magdip, cgav, caav, &
+  deglist, cglist, calist, levels, elevel, accl)
+  if (magdiag) deallocate (eldip_orig, magdip_orig)
+  if (havequad) deallocate (elquad)
+  if (havequad .and. magdiag) deallocate (elquad_orig)
+
+  stop 'normal termination of mchd-a'
   
   ! ============================================================================
 
-
-  
-end program mcd_c_molcas
+end program mchd_a_molcas

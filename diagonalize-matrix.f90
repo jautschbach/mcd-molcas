@@ -6,6 +6,10 @@ subroutine diagonalize_matrix (n, a)
 
   use definitions
 
+  use constants_parameters
+
+  use shared_variables
+
   implicit none
 
   integer(KINT), intent(in)  :: n
@@ -14,24 +18,20 @@ subroutine diagonalize_matrix (n, a)
   integer(KINT), dimension(:), allocatable :: iwork
   real((KREAL)), dimension(:), allocatable :: rwork, eval
   complex(KREAL), dimension(:), allocatable :: work
-  real(KREAL), parameter :: small=1.0d-10, one=1.0d0, zero=0.0d0
-  integer :: i, lda, lwork, lrwork, liwork, info, dbg
+  integer :: i, lda, lwork, lrwork, liwork, info
   character*1 :: jobz, uplo
 
-  integer, parameter :: out = 6, err = 0
 
   ! ----------------------------------------------------------------------------
   
-  dbg = 1 ! debug switch
 
-  if (dbg>0) then
+  if (dbg>1) then
+    write (out,*) 'hello from diagonalize_matrix'
     call print_rec_matrix(out, n, real(a), &
       'Zeeman Hamiltonian REAL part')
     call print_rec_matrix(out, n, aimag(a), &
       'Zeeman Hamiltonian IMAG part')
   end if
-
-
 
   ! lapack routine dimensioning:
 
@@ -72,12 +72,12 @@ subroutine diagonalize_matrix (n, a)
   ! the first element is positive
 
   do i = 1, n
-   if (abs(aimag(a(1,i))).gt.small) &
+   if (abs(aimag(a(1,i))).gt.tiny) &
     stop 'eigenvector array has non-real first row'
    if (real(a(1,i)) < 0) a(:,i) = -a(:,i) 
   end do
 
-  if (dbg>0) then
+  if (dbg>1) then
     call print_rec_matrix(out, n, real(a), &
       'Eigenvectors of Zeeman Hamiltonian REAL part')
     call print_rec_matrix(out, n, aimag(a), &

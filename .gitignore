@@ -2,6 +2,7 @@
 *.mod
 *~
 lala*
+Makefile
 graph.dat
 impulses.dat
 
@@ -24,4 +25,7 @@ __pycache__
 
 # Sphinx documentation build
 docs/build
+
+transition-vel-rot
+tests/*-temp
 

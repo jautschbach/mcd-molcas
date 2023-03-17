@@ -5,22 +5,22 @@ subroutine print_rec_matrix (iunit, n, a, label)
 
   use definitions
 
+  use shared_variables
+
   implicit none
 
   integer, intent(in) :: iunit, n
   real(KREAL), intent(in) :: a(n,n)
   character*(*) :: label
 
-  integer :: dbg, i
+  integer :: i
   character*100 :: fmt
 
   ! ---------------------------------------------------------------------------
 
-  dbg = 0
-
   ! output format of matrix
   write(fmt,'(a,i5,a)') '(1x,', n, 'f20.8)'
-  if (dbg>0) write (iunit,*) 'fmt =', fmt
+  if (dbg>0) write (iunit,*) 'print_rec_matrix: fmt =', fmt
   
   ! print matrix
   write(iunit,'(/1x,a/)') trim(label)

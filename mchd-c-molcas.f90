@@ -47,10 +47,6 @@ program mchd_c_molcas
 
   write (out,'(/1x,a/)') 'MChD C-Term PROGRAM'
   
-  ! debug level:
-
-  dbg = 0
-
   if (dbg>0) then
     write (out,'(/1x,a/)') 'namelist default values'
     write (out,options)
