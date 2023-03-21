@@ -42,7 +42,7 @@ program transition_vel_rot
 
   real(KREAL) :: waveno, evolt
   waveno(rtemp) = rtemp * au2cm
-  evolt(rtemp) = rtemp * au2ev
+  !evolt(rtemp) = rtemp * au2ev
 
   ! ============================================================================
 

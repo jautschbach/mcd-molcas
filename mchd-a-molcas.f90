@@ -50,7 +50,7 @@ program mchd_a_molcas
 
   real(KREAL) :: waveno, evolt
   waveno(rtemp) = rtemp * au2cm
-  evolt(rtemp) = rtemp * au2ev
+  !evolt(rtemp) = rtemp * au2ev
 
   ! ============================================================================
 

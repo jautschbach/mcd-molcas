@@ -50,10 +50,14 @@ subroutine process_energies (nstates, nlevels, do_group, &
     stop 'error: file energies.txt does not exist'
   end if
 
-  read (iu_e,*) junk
+  read (iu_e,*, iostat=ios) junk
+  if (ios /= 0) then
+    stop 'error: failure reading first line (comment) from energies.txt'
+  end if
+  
   read (iu_e,*, iostat=ios) energy(1:nstates)
   if (ios /= 0) then
-    stop 'error: failure reading energies from energies.txt'
+    stop 'error: failure reading energies from energies.txt. nstates set wrong?'
   end if
 
   close(iu_e)
