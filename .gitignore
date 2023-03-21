@@ -16,6 +16,7 @@ plot-spectrum
 mcd-c-molcas
 mcd-a-molcas
 mcd-b-molcas
+mchd-a-molcas
 mchd-c-molcas
 plot-mcdspectrum
 transition-dip-rot
