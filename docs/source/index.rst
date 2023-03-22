@@ -15,6 +15,9 @@ Research publications
 
 - *Phys. Chem. Chem. Phys.*, **2017**, 19, 17300-17313. DOI: `10.1039/C7CP02572F <https://doi.org/10.1039/C7CP02572F>`_
 
+Contributing
+============
+
 Indices and tables
 ==================
 
