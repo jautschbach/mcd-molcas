@@ -5,7 +5,7 @@ subroutine read_data_files
   ! Molcas data for the generation of various types of spectral
   ! intensities
   
-  ! (c) 2019-2022 Jochen Autschbach, SUNY Buffalo
+  ! (c) 2019-2023 Jochen Autschbach, SUNY Buffalo
 
   use definitions
   
@@ -75,6 +75,10 @@ subroutine read_data_files
           end if
         end do ! i
       end do ! j
+
+      ! attempt to read one more element. This must fail, otherwise
+      ! this would indicate that nstates in the input is not correct
+      call read_one_more
       
       close (iu_d)
     
@@ -122,6 +126,10 @@ subroutine read_data_files
           end if
         end do ! i
       end do ! j
+
+      ! attempt to read one more element. This must fail, otherwise
+      ! this would indicate that nstates in the input is not correct
+      call read_one_more
       
       close (iu_d)
       
@@ -174,6 +182,10 @@ subroutine read_data_files
           end if
         end do ! i
       end do ! j
+
+      ! attempt to read one more element. This must fail, otherwise
+      ! this would indicate that nstates in the input is not correct
+      call read_one_more
      
       close (iu_d)
       
@@ -226,6 +238,10 @@ subroutine read_data_files
           end if
         end do ! i
       end do ! j
+
+      ! attempt to read one more element. This must fail, otherwise
+      ! this would indicate that nstates in the input is not correct
+      call read_one_more
      
       close (iu_d)
       
@@ -278,6 +294,10 @@ subroutine read_data_files
           end if
         end do ! i
       end do ! j
+
+      ! attempt to read one more element. This must fail, otherwise
+      ! this would indicate that nstates in the input is not correct
+      call read_one_more
       
       close (iu_d)
       
@@ -407,6 +427,10 @@ subroutine read_data_files
           end if
         end do ! i
       end do ! j
+
+      ! attempt to read one more element. This must fail, otherwise
+      ! this would indicate that nstates in the input is not correct
+      call read_one_more
       
       close (iu_d)
       
@@ -488,8 +512,25 @@ subroutine read_data_files
     end do
   end if ! print_d
 
+  return
+
   ! ============================================================================
 
-  return
+contains
+  
+  subroutine read_one_more
+    read (iu_d,*, iostat=ios) idum, jdum, ctemp(1:2)
+    if (ios == 0) then
+      write (err,*) 'it appears that the data file '//trim(cs)
+      write (err,*) 'contains more data than corresponding to nstates'
+      write (cs,*) nstates
+      write (err,*) 'as set in options.dat (nstates='// &
+        trim(adjustl(cs))//'). aborting'
+      stop 'error termination'
+    end if
+  end subroutine read_one_more
+  
   
 end subroutine read_data_files
+
+

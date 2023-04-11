@@ -20,7 +20,7 @@ OMP = -qopenmp -I${MKLROOT}/include
 FOPT = -C -g -traceback -fpe0 -check noarg_temp_created # ifort
 
 ### Extra libraries
-FLIB = -Wl,--start-group ${MKLROOT}/lib/intel64/libmkl_intel_lp64.a ${MKLROOT}/lib/intel64/libmkl_core.a ${MKLROOT}/lib/intel64/libmkl_sequential.a -Wl,--end-group -lpthread -lm -ldl
+FLIB =  -L${MKLROOT}/lib/intel64 -lmkl_intel_lp64 -lmkl_sequential -lmkl_core -lpthread -lm -ldl
 
 FFLAGS = $(OMP)
 
