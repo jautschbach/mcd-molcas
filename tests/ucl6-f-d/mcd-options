@@ -1,1 +1,1 @@
-&options degen = 2, temp = 5.15, nstates = 24, skip = 12, ddelta=1e-5, magdiag=.F. /
+&options degen = 2, temp = 5.15, nstates = 24, skip = 12, ddelta=1e-5, magdiag=.F., oldspiny=.T. /

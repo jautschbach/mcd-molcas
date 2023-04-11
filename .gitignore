@@ -5,12 +5,28 @@ lala*
 Makefile
 graph.dat
 impulses.dat
+
+# ignore temporary files
+*.swp
+tests/*-temp
+logfile
+
+# ignore compiled binaries
 plot-spectrum
 mcd-c-molcas
 mcd-a-molcas
 mcd-b-molcas
+mchd-a-molcas
 mchd-c-molcas
 plot-mcdspectrum
 transition-dip-rot
+
+# python cache
+__pycache__
+
+# Sphinx documentation build
+docs/build
+
 transition-vel-rot
 tests/*-temp
+
