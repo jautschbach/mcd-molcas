@@ -85,18 +85,6 @@ jobs:
         run: |
           source /opt/intel/oneapi/setvars.sh
           source /opt/intel/oneapi/mkl/latest/env/vars.sh
-          echo "Checking LD_LIBRARY_PATH"
-          echo $LD_LIBRARY_PATH
-      - name: Debugging
-        run: |
-          echo 'Running export | grep "intel" -i'
-          export | grep "intel" -i
-          echo "Checking LD_LIBRARY_PATH"
-          echo $LD_LIBRARY_PATH
-          echo "List /opt/intel/oneapi/compiler/latest/linux/compiler/lib/"
-          ls -lR /opt/intel/oneapi/compiler/latest/linux/compiler/lib/
-          echo "List MKLROOT"
-          ls -lR $MKLROOT
       - name: Compile
         run: |
           make -f Makefile.ifort FC=${{ env.INSTALL_PATH }}/ifort \
