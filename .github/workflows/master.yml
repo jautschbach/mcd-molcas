@@ -58,7 +58,7 @@ jobs:
       BASE_DIR: /opt/intel/oneapi/compiler/latest/linux
       INSTALL_PATH: /opt/intel/oneapi/compiler/latest/linux/bin/intel64
       MKLROOT: /opt/intel/oneapi/mkl/latest
-      LD_LIBRARY_PATH: /opt/intel/oneapi/compiler/latest/linux/compiler/lib/intel64:/opt/intel/oneapi/compiler/latest/linux/ipp/lib/intel64
+      LD_LIBRARY_PATH: /opt/intel/oneapi/mkl/latest/lib/intel64:/opt/intel/oneapi/compiler/latest/linux/compiler/lib/intel64:/opt/intel/oneapi/compiler/latest/linux/ipp/lib/intel64
     runs-on: ${{ matrix.os }}
     steps:
       - name: Checkout Code
@@ -84,10 +84,7 @@ jobs:
       - name: Setup Intel oneAPI environment
         run: |
           source /opt/intel/oneapi/setvars.sh
-      - name: Debugging
-        run: |
-          echo "Checking LD_LIBRARY_PATH"
-          echo $LD_LIBRARY_PATH
+          source /opt/intel/oneapi/mkl/latest/env/vars.sh
       - name: Compile
         run: |
           make -f Makefile.ifort FC=${{ env.INSTALL_PATH }}/ifort \

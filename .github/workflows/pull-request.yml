@@ -56,7 +56,7 @@ jobs:
       BASE_DIR: /opt/intel/oneapi/compiler/latest/linux
       INSTALL_PATH: /opt/intel/oneapi/compiler/latest/linux/bin/intel64
       MKLROOT: /opt/intel/oneapi/mkl/latest
-      LD_LIBRARY_PATH: /opt/intel/oneapi/compiler/latest/linux/compiler/lib/intel64:/opt/intel/oneapi/compiler/latest/linux/ipp/lib/intel64
+      LD_LIBRARY_PATH: /opt/intel/oneapi/mkl/latest/lib/intel64:/opt/intel/oneapi/compiler/latest/linux/compiler/lib/intel64:/opt/intel/oneapi/compiler/latest/linux/ipp/lib/intel64
     runs-on: ${{ matrix.os }}
     steps:
       - name: Checkout Code
