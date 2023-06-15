@@ -1,10 +1,10 @@
 
 subroutine diagonalize_magdip_all (idir)
 
-  ! -------------------------------------------------
+  ! -------------------------------------------------------
   ! diagonalize the Zeeman Hamiltonian component idir
-  ! within the degenerate GS
-  ! -------------------------------------------------
+  ! within all set of degenerate states one after the other
+  ! -------------------------------------------------------
   
   use definitions
   
@@ -36,11 +36,16 @@ subroutine diagonalize_magdip_all (idir)
 
     if (ndeg.gt.1) then ! if not, there is nothing to do
 
-      write(out,*) 'I am working'
+      if (dbg>0) then
+        if (dbg>1) then
+          write(out,'(1x,25(''.'')/,/1x,a,1x,i5/)') 'For level', n
+        end if
+        write(out,'(/1x,a/)') 'diagonalize-magdip-all is working :'
+      end if ! dbg
 
       if ((nfin - nint + 1).ne.ndeg) then
         write(out,*) 'n, nint, nfin, ndeg', n, nint, nfin, ndeg
-        stop 'error in diAGONALIZE magdip'
+        stop 'error in diagonalize magdip'
       end if
 
       ! the next call uses the complex lapack routine zheevd.
@@ -72,11 +77,17 @@ subroutine diagonalize_magdip_all (idir)
         deallocate (tmpmat2)
       end do
 
-      call print_rec_matrix(out, ndeg, real(magdip(nint:nfin,nint:nfin,idir)),&
-        & 'Transformed Zeeman Hamiltonian REAL part')
+      if (dbg>0) then
 
-      call print_rec_matrix(out, ndeg, aimag(magdip(nint:nfin,nint:nfin,idir)),&
-        & 'Transformed Zeeman Hamiltonian IMAG part')
+        write (out,'(/1x,a/)') 'Thus'
+
+        call print_rec_matrix(out, ndeg, real(magdip(nint:nfin,nint:nfin,idir)),&
+          & 'Transformed Zeeman Hamiltonian REAL part')
+
+        call print_rec_matrix(out, ndeg, aimag(magdip(nint:nfin,nint:nfin,idir)),&
+          & 'Transformed Zeeman Hamiltonian IMAG part')
+
+      end if ! dbg
 
       ! -------------------------------------------------------
       ! transform the dipole and quad matrix elements between the GS
@@ -114,16 +125,5 @@ subroutine diagonalize_magdip_all (idir)
     end if ! end of the procdure for one degeneracy
   
   end do ! loop over all degenerated states
-
-
-!!$      if (dbg>1) then
-!!$      allocate (tmpmat1(nstates, nstates))      
-!!$      do jdir = 1,3
-!!$        tmpmat1 = transpose(conjg(eldip(:,:,jdir)))
-!!$        tmpmat1 = tmpmat1 - eldip(:,:,jdir)        
-!!$        write (out,*) jdir, pack(tmpmat1(:,:), abs(tmpmat1(:,:))>tiny)        
-!!$      end do ! jdir      
-!!$      deallocate (tmpmat1)      
-!!$    end if ! dbg
   
 end subroutine diagonalize_magdip_all

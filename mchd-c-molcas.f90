@@ -470,8 +470,8 @@ program mchd_c_molcas
   
   do idir = 0,3
     close (iu_out(idir))
-    write (out,'(1x,a,1x,i7,1x,a,1x,a)') 'wrote C-term data for', &
-      nstates-degen-skip,'transitions to file',trim(outfile(idir))  
+    write (out,'(1x,a,1x,i7,1x,a,1x,a)') 'wrote C-terms data for', &
+      nlevels - skip - 1,'transitions to file',trim(outfile(idir))  
   end do
 
   call print_constants
