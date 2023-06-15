@@ -65,7 +65,7 @@ subroutine diagonalize_matrix (n, a)
 
   deallocate(iwork,work,rwork)
 
-  if (dbg>1) write(out,*) a(:,:)
+  if (dbg>2) write(out,*) a(:,:)
 
   ! in order to compare with Mathematica et al., 
   ! let's fix the phases of the eigenvectors such that
