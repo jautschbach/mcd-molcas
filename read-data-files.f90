@@ -54,7 +54,7 @@ subroutine read_data_files
       ! by trial & error, we originally leared that the spin-y matrix must be
       ! processed the same way as angmon, and spin x,z are processed like
       ! electric dipoles and similar properties.
-      ! however, this changed in 2021 or so in OpenMolcas, so now
+      ! however, this changed in 2019 in OpenMolcas (commit ..62f096), so now
       ! we have option 'oldspiny', and the default is to treat S(y) the same way
       ! as the other spin components.
       
