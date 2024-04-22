@@ -205,7 +205,6 @@ program mchd_a_molcas
   if (havequad) then
     allocate (elquad(nstates,nstates,6))
     elquad = 0
-    havequad = .false.
   end if
 
   call read_data_files
@@ -288,7 +287,7 @@ program mchd_a_molcas
 
   do idir = 1,3
 
-    write (out,'(1x,a,1x,i1/)') 'B-field direction',idir
+    write (out,'(/1x,40(''.'')//1x,a,1x,i1/)') 'B-field direction',idir
     
     
     write (out,'(/1x,a,1x,a/1x,a/)') 'MChD A-terms for 0 -> f',&
@@ -305,18 +304,8 @@ program mchd_a_molcas
       magdip = magdip_orig
       if (havequad) elquad = elquad_orig
       
-      ! call diagonalize_magdip_gs(idir)
       call diagonalize_magdip_all(idir)
       
-      write (out,'(1x,a/)') 'Ground state now diagonalizes Zeeman operator'
-      write (out,'(1x,a)') 'Complex magnetic moment matrix elements for GS:'
-      do i = 1,degen
-        write (out,'(/1x,a,1x,i2)') 'GS component',i
-        do jdir = 1,3
-          write (out,'(1x,F14.8,SP,F14.8,a)') magdip(i,i,jdir),'i'
-        end do
-      end do ! i
-      write (out,*)
     end if ! magdiag
     
     cglist(:) = c0 ! initialize A(G) terms with complex zeros
@@ -395,12 +384,13 @@ program mchd_a_molcas
               ca = ca + ctmp
             end do ! jdir
             
-          else  ! magdiag necessary no ?
+          else  ! magdiag necessary currently
             stop 'Not yet supported'
 
-!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!
-!      should be ok until here                                                !
-!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!
+            !!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!
+            !   here Piepho and Schatz version should have to be developped   !
+            !!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!
+
             ! do i2 = 1, levels(ilevel)
               
             !   is2 = accl(ilevel) + i2
@@ -479,19 +469,57 @@ program mchd_a_molcas
   end do
 
 
-  ! --------------------
-  ! close mcd data files
-  ! --------------------
+  ! ---------------------
+  ! close mchd data files
+  ! ---------------------
   
   do idir = 0,3
     close (iu_out(idir))
-    write (out,'(1x,a,1x,i7,1x,a,1x,a)') 'wrote A-term data for', &
-      nstates-degen-skip,'transitions to file',trim(outfile(idir))  
+    write (out,'(1x,a,1x,i7,1x,a,1x,a)') 'wrote A-terms data for', &
+      nlevels - skip - 1,'transitions to file',trim(outfile(idir))   
   end do
 
   call print_constants
     
-  
+  ! -----------------
+  ! some debug output
+  ! -----------------
+
+  if (dbg>0) then
+    write (out,'(/1x,a)') 'Levi Civita Tensor nonzero elements'
+    do idir = 1,3
+      do jdir = 1,3
+        do kdir = 1,3
+          if (lc(idir,jdir,kdir).ne.c0) &
+            write (out,'(1x,3(1x,i2),a,1x,F4.1)') &
+            idir, jdir, kdir, ': ', real(lc(idir,jdir,kdir))
+        end do
+      end do
+    end do
+    write (out,'(/1x,a)') 'quadrupole indices'
+    do idir = 1,3
+      do jdir = 1,3
+        write (out,'(1x,2(1x,i2),a,1x,i2)') &
+          idir, jdir,': ', qindex(idir,jdir)
+      end do
+    end do
+  end if ! dbg 0
+
+  if (dbg>1) then
+    write (out,'(/1x,a)') 'Check diagonalization of the Zeeman Hamiltonian'
+    do kdir = 1, 3
+      write (out,'(/1x,25(''.'')/,/1x,a,1x,i5)') 'Along direction ', kdir
+      call print_rec_matrix(out, nlevels,real(magdip_orig(1:nlevels,1:nlevels,kdir)), &
+        & 'Original magdip REAL part')
+      call print_rec_matrix(out, nlevels,real(magdip(1:nlevels,1:nlevels,kdir)), &
+        & 'Transformed magdip REAL part')
+      call print_rec_matrix(out, nlevels,aimag(magdip_orig(1:nlevels,1:nlevels,kdir)), &
+        & 'Original magdip IMAG part')
+      call print_rec_matrix(out, nlevels,aimag(magdip(1:nlevels,1:nlevels,kdir)), &
+        & 'Transformed magdip IMAG part')
+    end do
+  end if ! dbg 1
+
   ! --------------------------------------------------
   ! deallocate arrays, clean up if necessary, and exit
   ! --------------------------------------------------

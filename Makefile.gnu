@@ -8,10 +8,15 @@
 
 
 ### Fortran compiler
-FC     = gfortran
-FC90   = gfortran
+#FC     = gfortran
+#FC90   = gfortran
 
-LINKER = gfortran
+#LINKER = gfortran
+
+FC     = gfortran-mp-11
+FC90   = gfortran-mp-11
+
+LINKER = gfortran-mp-11
 
 ### Disable/Enable OpenMP support
 OMP = 
