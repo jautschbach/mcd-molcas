@@ -352,7 +352,7 @@ program transition_vel_rot
           if ( (havespin.or.haveang)) then
             ctmp = prer *  &
               dipvelif(idir) * magdip(js,is,idir)
-            write(out,*) 'ctmp =',ctmp
+            !write(out,*) 'ctmp =',ctmp
           
             cr = cr - sqm1 * ctmp
           end if
@@ -392,10 +392,10 @@ program transition_vel_rot
       end do ! j1
       
       cdlist(jlevel,idir) = cdlist(jlevel,idir) + cd
-      write(out,*) 'cdlist for jlevel now',jlevel,cdlist(jlevel,idir)      
+      !write(out,*) 'cdlist for jlevel now',jlevel,cdlist(jlevel,idir)      
 
       crlist(jlevel,idir) = crlist(jlevel,idir) + cr
-      write(out,*) 'crlist for jlevel now',jlevel,crlist(jlevel,idir)      
+      !write(out,*) 'crlist for jlevel now',jlevel,crlist(jlevel,idir)      
       
     end do ! jlevel
     

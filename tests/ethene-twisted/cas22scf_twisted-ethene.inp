@@ -1,0 +1,78 @@
+&SEWARD 
+RICD
+Basis set
+C.6-31G
+C1 0.0  0.0  0.662088 angstrom
+C2 0.0  0.0 -0.662088 angstrom
+End of basis
+Basis set
+H.6-31G
+H1  0.000000  0.920671  1.231623 angstrom
+H2  0.000000 -0.920671  1.231623 angstrom
+H3 -0.651013 -0.651013 -1.231623 angstrom
+H4  0.651013  0.651013 -1.231623 angstrom
+End of basis
+Angmom
+0.0 0.0 0.0
+Center
+ 2
+ 1  0.0 0.0 0.0
+ 2  0.0 0.0 0.0
+AMFI
+RELA
+    R02O02
+
+*****************************************************
+
+&RASSCF
+Spin = 1
+Symmetry = 1
+nActEl = 2 0 0
+Inactive = 7
+RAS2=2
+CIRoots = 3 3 1
+Iter = 100 100
+LumOrb
+Orbappear = compact
+Orblisting = all
+Levshift = 0.5
+Maxorb = 1
+
+>> COPY $Project.JobIph JOB001
+
+*****************************************************
+
+&RASSI
+NrofJobIphs 
+ 1 3
+ 1 2 3 
+EJOB
+SPIN
+MESO
+MEES
+PRPRint
+EPRG = 1.0
+PROPerties
+ 21
+ 'Velocity' 1
+ 'Velocity' 2
+ 'Velocity' 3
+ 'AngMom' 1
+ 'AngMom' 2
+ 'AngMom' 3
+ 'MltPl  1' 1
+ 'MltPl  1' 2
+ 'MltPl  1' 3
+ 'MltPl  2' 1
+ 'MltPl  2' 2
+ 'MltPl  2' 3
+ 'MltPl  2' 4
+ 'MltPl  2' 5
+ 'MltPl  2' 6
+ 'MltPv  2' 1
+ 'MltPv  2' 2
+ 'MltPv  2' 3
+ 'MltPv  2' 4
+ 'MltPv  2' 5
+ 'MltPv  2' 6
+
