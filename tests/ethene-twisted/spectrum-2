@@ -1,0 +1,7 @@
+&plot nsyme(1)=      2, ndegen(1)=1, sigma=1000, sharpen=1, npoints=300,
+ nexcit=      2, invert=F, waveno=T, temp=   5.00, theta=T /
+# oscillator strength f, and rotatory strength R in 1E-40 esu**2 cm**2
+# the last 2 columns should be zero and are printed for debug purposes
+#  E(cm**-1), f, R, Im[f], Im[R]
+       55215.37             0.19709979         -263.90706651            0.00000000            0.00000000
+       80339.73             0.00000000            0.00000029            0.00000000            0.00000000

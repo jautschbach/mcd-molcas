@@ -1,0 +1,2 @@
+&options degen = 0, temp = 5, nstates = 3, states_sos= 3, nospin=.F.,
+skip = 0, ddelta=1e-5, magdiag=.F., theta=T, noquad=.F. /

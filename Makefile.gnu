@@ -13,10 +13,10 @@
 
 #LINKER = gfortran
 
-FC     = gfortran-mp-11
-FC90   = gfortran-mp-11
+FC     = gfortran
+FC90   = gfortran
 
-LINKER = gfortran-mp-11
+LINKER = gfortran
 
 ### Disable/Enable OpenMP support
 OMP = 
