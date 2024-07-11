@@ -79,20 +79,22 @@ jobs:
           sudo apt-get update
       - name: Install Intel oneAPI
         run: |
-          sudo apt-get install intel-oneapi-mkl-devel \
-                intel-oneapi-compiler-fortran
+          sudo apt-get install intel-oneapi-mkl-devel 
+          sudo apt-get install intel-oneapi-compiler-fortran
       - name: Setup Intel oneAPI environment
         run: |
           source /opt/intel/oneapi/setvars.sh
           source /opt/intel/oneapi/mkl/latest/env/vars.sh
       - name: Compile
         run: |
-          make -f Makefile.ifort FC=${{ env.INSTALL_PATH }}/ifort \
-                  FC90=${{ env.INSTALL_PATH }}/ifort \
-                  LINKER=${{ env.INSTALL_PATH }}/ifort
+          source /opt/intel/oneapi/setvars.sh
+          make -f Makefile.ifort FC=ifx \
+                  FC90=ifx \
+                  LINKER=ifx
       - name: Run the tests
         run: |
           source tag.sh
+          source /opt/intel/oneapi/setvars.sh
           $MCDHOME/tests/run-mcd-tests.sh
 
   publish-docs:

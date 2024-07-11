@@ -8,21 +8,21 @@
 
 
 ### Fortran compiler
-FC     = ifort 
-FC90   = ifort 
+FC     = ifx
+FC90   = ifx
 
-LINKER = ifort
+LINKER = ifx
 
 ### Disable/Enable OpenMP support
 OMP = -qopenmp -I${MKLROOT}/include
 
 ### Compilation/Linking options
-FOPT = -C -g -traceback -fpe0 -check noarg_temp_created # ifort
+FOPT = -g -traceback -fpe0 -O2  -I"${MKLROOT}/include"
 
 ### Extra libraries
-FLIB =  -L${MKLROOT}/lib/intel64 -lmkl_intel_lp64 -lmkl_sequential -lmkl_core -lpthread -lm -ldl
+FLIB =  -L${MKLROOT}/lib -lmkl_intel_lp64 -lmkl_sequential -lmkl_core -lpthread -lm -ldl
 
-FFLAGS = $(OMP)
+FFLAGS = 
 
 .SUFFIXES: .f .F .F90 .f90
 
