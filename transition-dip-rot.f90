@@ -44,11 +44,11 @@ program transition_dip_rot
   
   implicit none
 
-  complex(KREAL), dimension(:), allocatable :: cdav, crav
+  complex(KREAL), dimension(:), allocatable :: cdav, crav, eldipav
   
-  complex(KREAL), dimension(:,:), allocatable :: cdlist, crlist
+  complex(KREAL), dimension(:,:), allocatable :: cdlist, crlist, eldiplist
   
-  complex(KREAL) :: cd, ctmp, cr, pred, prer
+  complex(KREAL) :: cd, ctmp, cr, pred, prer, ed, edmp, g
 
   integer(KINT) :: idir, jdir, kdir, i, j
 
@@ -260,8 +260,8 @@ program transition_dip_rot
   
   ! memory allocations:
   
-  allocate (cdav(nlevels), crav(nlevels))
-  allocate (cdlist(nlevels,3), crlist(nlevels,3))
+  allocate (cdav(nlevels), crav(nlevels), eldipav(nlevels))
+  allocate (cdlist(nlevels,3), crlist(nlevels,3), eldiplist(nlevels,3))
 
   ! common pre-factors for the oscillator and rotatory strength.
   ! Note that for R we pick a factor 3, because in the isotropic
@@ -277,9 +277,11 @@ program transition_dip_rot
   
   cdav(:) = c0 ! isotropic D
   crav(:) = c0 ! isotropic R
+  eldipav(:) = c0 ! isotropic electric dipole moment
 
   cdlist(:,:) = c0 ! directional D
   crlist(:,:) = c0 ! directional R
+  eldiplist(:,:) = c0 !directional electric dipole moment
 
   ! create output files, open, and write namelist
   ! input for plot program
@@ -301,9 +303,9 @@ program transition_dip_rot
       ', ndegen(1)=1, sigma=1000, sharpen=1, npoints=300,', &
       ' nexcit=',ntemp,', invert=F, waveno=T, temp=',temp,&
       ', theta=',theta,' /', &
-      '# oscillator strength f, and rotatory strength R in 1E-40 esu**2 cm**2', &
+      '# oscillator strength f, rotatory strength R, and D in 1E-40 esu**2 cm**2', &
       '# the last 2 columns should be zero and are printed for debug purposes', &
-      '#  E(cm**-1), f, R, Im[f], Im[R]'
+      '#  E(cm**-1), f, R, D, g_lum, Im[f], Im[R]'
 
   end do ! idir
   
@@ -364,6 +366,7 @@ program transition_dip_rot
       
       cd = c0 ! set temp variables to complex zero
       cr = c0
+      ed = c0
       
       do j = 1,levels(jlevel)
         
@@ -392,8 +395,10 @@ program transition_dip_rot
           ! (a) calculate oscillator strength for polarization idir
 
           if (havedip) then
-            ctmp = pred * two * deltae *  &
-              eldip(is,js,idir) * eldip(js,is,idir)
+            edmp = eldip(is,js,idir) * eldip(js,is,idir)
+            ctmp = pred * two * deltae * edmp !  &
+           !   eldip(is,js,idir) * eldip(js,is,idir)
+            ed = ed + edmp  
             cd = cd + ctmp
           end if
           
@@ -441,7 +446,9 @@ program transition_dip_rot
       !write(out,*) 'cdlist for jlevel now',jlevel,cdlist(jlevel,idir)      
 
       crlist(jlevel,idir) = crlist(jlevel,idir) + cr
-      !write(out,*) 'crlist for jlevel now',jlevel,crlist(jlevel,idir)      
+      !write(out,*) 'crlist for jlevel now',jlevel,crlist(jlevel,idir)  
+
+      eldiplist(jlevel,idir) = eldiplist(ilevel,idir) + ed 
       
     end do ! jlevel
     
@@ -542,13 +549,24 @@ program transition_dip_rot
   
   cdav(:) = third * (cdlist(:,1) + cdlist(:,2) + cdlist(:,3))
   crav(:) = third * (crlist(:,1) + crlist(:,2) + crlist(:,3))
-    
+  eldipav(:) = (eldiplist(:,1) + eldiplist(:,2) &
+  + eldiplist(:,3))*d2au2cgs  
+  
   do ilevel = 2+skip,nlevels
+   ! eldipav(ilevel) = 0.0
     deltae = elevel(ilevel) - elevel(1)
-    write (iu_out(idir),'(1x,f14.2,3x,4(f20.8,2x))') &
+    if (eldipav(ilevel) .ne. 0E0_KREAL) then
+    g = crav(ilevel)/eldipav(ilevel)/fourth
+    write (iu_out(idir),'(1x,f14.2,3x,6(f20.8,2x))') &
       waveno(deltae), &
-      real(cdav(ilevel)),  real(crav(ilevel)), &
-      aimag(cdav(ilevel)), aimag(crav(ilevel))
+      real(cdav(ilevel)),  real(crav(ilevel)), real(eldipav(ilevel)), &
+      real(g), aimag(cdav(ilevel)), aimag(crav(ilevel))
+    else
+    write (iu_out(idir),'(1x,f14.2,3x,3(f20.8,2x),A22,2(f20.8,2x))') &
+      waveno(deltae), &
+      real(cdav(ilevel)),  real(crav(ilevel)), real(eldipav(ilevel)), &
+      '----------  ', aimag(cdav(ilevel)), aimag(crav(ilevel))
+    end if
   end do
 
   close (iu_out(idir))
@@ -563,7 +581,8 @@ program transition_dip_rot
   ! --------------------------------------------------
   
   deallocate(energy, cdav, crav, &
-    deglist, cdlist, crlist, levels, elevel, accl)
+    deglist, cdlist, crlist, levels, elevel, accl, &
+    eldiplist, eldipav)
 
   if (havespin .or. haveang) deallocate(magdip)
   if (havedip) deallocate(eldip)
