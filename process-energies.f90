@@ -16,7 +16,7 @@ subroutine process_energies (nstates, nlevels, do_group, &
   integer(KINT), intent(in) :: nstates
   real(KREAL), intent(in) :: ddelta
   integer(KINT), intent(inout) :: skip, degen
-  
+
   integer(KINT), intent(out) :: nlevels
   integer(KINT), intent(out) :: levels(nstates), accl(nstates), deglist(nstates)
   real(KREAL), intent(out) :: energy(nstates), elevel(nstates)
@@ -36,9 +36,9 @@ subroutine process_energies (nstates, nlevels, do_group, &
   ! in this routine, the debug level is set manually at compile time, so
   ! we don't get a mess with variable definitions in some of the
   ! modules
-  
+
   dbg = 0
-  
+
   ! --------------------------------------
   ! read the energies from the energy file
   ! --------------------------------------
@@ -54,7 +54,7 @@ subroutine process_energies (nstates, nlevels, do_group, &
   if (ios /= 0) then
     stop 'error: failure reading first line (comment) from energies.txt'
   end if
-  
+
   read (iu_e,*, iostat=ios) energy(1:nstates)
   if (ios /= 0) then
     stop 'error: failure reading energies from energies.txt. nstates set wrong?'
@@ -69,7 +69,7 @@ subroutine process_energies (nstates, nlevels, do_group, &
     'Criterion to detect degeneracies (au):',ddelta
 
   ! re-set energies relative to E(1) if not already done
-  
+
   do i = 2, nstates
     energy(i) = energy(i) - energy(1)
   end do
@@ -84,7 +84,7 @@ subroutine process_energies (nstates, nlevels, do_group, &
     do i = 2, nstates
       deglist(i) = 0 ! hope this triggers a crash if we don't assign properly
     end do
-    
+
     j = 1
     do i = 2,nstates
       if (abs(energy(i)-energy(i-1)).gt.ddelta) then
@@ -116,13 +116,13 @@ subroutine process_energies (nstates, nlevels, do_group, &
   ! original state list
 
     ! write (out,'(1x,a/(1x,i5))') 'deglist:',deglist
-  
+
   j = 1
   levels(1) = 1
   accl(:) = 1
-  
+
   do i = 2, nstates
-    
+
     if (deglist(i).eq.deglist(i-1)) then
       levels(j) = levels(j) + 1
       accl(j) = accl(j) + 1
@@ -140,9 +140,9 @@ subroutine process_energies (nstates, nlevels, do_group, &
       write (out,*) 'deglist: ',deglist
       stop 'degeneracies list is broken'
     end if
-    
+
   end do
-  
+
   if (j.ne.nlevels) stop 'count error 2 for j in levels loop'
 
   !write (out,'(1x,a/6(1x,i5))') 'accl:',accl
@@ -155,17 +155,17 @@ subroutine process_energies (nstates, nlevels, do_group, &
 
   ! if degen wasn't set by input we have to set it here based
   ! on the calculated state grouping. This is the GS degeneracy:
-  
+
   if (do_group .and. degen.lt.1) then
     degen = levels(1)
   end if
 
   if (do_group) then
-    
+
     ! accl(i) is currently the number of states up to an including
     ! level no. i. We want to change that so that levels(i) is
     ! not included:
-    
+
     if (degen.gt.0 .and. levels(1).ne.degen) stop &
       'count error levels(1) vs degen'
     if (accl(1).ne.degen) stop 'count error acc(1) vs degen'
@@ -177,7 +177,7 @@ subroutine process_energies (nstates, nlevels, do_group, &
 
     ! no grouping, and degen defined manually: set the levels
     ! variables accordingly:
-    
+
     levels(1) = degen
     nlevels = nstates - degen + 1
     accl(1) = 0
@@ -190,7 +190,7 @@ subroutine process_energies (nstates, nlevels, do_group, &
     do j = 2,nlevels
       accl(j) = degen + j -2
     end do
-    
+
   end if ! do_group or not
 
   !write (out,*) 'nlevels = ',nlevels
@@ -242,7 +242,7 @@ subroutine process_energies (nstates, nlevels, do_group, &
       end if
     end do
     if (found) then
-      write (out,'(/1x,a,1x,i5,1x,a/1x,a,1x,i5,1x,a/)') 'Will skip',&
+      write (out,'(/1x,a,1x,i0,1x,a/1x,a,1x,i0,1x,a/)') 'Will skip',&
         skip,'excited states,','corresponding to', &
         i-2,'levels above the ground level'
       skip = i-2
@@ -255,7 +255,7 @@ subroutine process_energies (nstates, nlevels, do_group, &
 
   write (out,'(/1x,a/)') 'Energies relative to state no. 1 and grouping:'
   do i = 1, nstates
-    write (out,'(1x,i5,a,1x,f15.8,3x,f15.8,3x,i5)') i,':', &
+    write (out,'(1x,i5,a,1x,f15.8,3x,f15.4,3x,i5)') i,':', &
       energy(i),waveno(energy(i)),deglist(i)
   end do
 
@@ -264,7 +264,7 @@ subroutine process_energies (nstates, nlevels, do_group, &
 
   write (out,'(/1x,a/)') 'Levels relative to level no. 1 and degeneracy:'
   do i = 1, nlevels
-    write (out,'(1x,i5,a,1x,f15.8,3x,f15.8,3x,i5)') i,':', &
+    write (out,'(1x,i5,a,1x,f15.8,3x,f15.4,3x,i5)') i,':', &
       elevel(i),waveno(elevel(i)),levels(i)
   end do
 
@@ -273,16 +273,16 @@ subroutine process_energies (nstates, nlevels, do_group, &
     write (out,'(1x,a/6(1x,i5))') 'accl:',accl(1:nlevels)
     write (out,'(1x,a/6(1x,i5))') 'levels:',levels(1:nlevels)
   end if
-  
-  write (out,'(1x,a/6(1x,i5))') 'deglist',deglist
-  
+
+  !write (out,'(1x,a/6(1x,i5))') 'deglist',deglist
+
 
   write (out,*)
-  
+
   ! all done
 
   ! ===========================================================================
-  
+
   return
 
 end subroutine process_energies

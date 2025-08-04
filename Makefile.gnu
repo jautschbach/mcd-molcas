@@ -32,7 +32,8 @@ FFLAGS = $(OMP)
 .SUFFIXES: .f .F .F90 .f90
 
 BIN = mcd-c-molcas mchd-c-molcas mcd-a-molcas mchd-a-molcas\
-      mcd-b-molcas transition-dip-rot transition-vel-rot plot-mcdspectrum
+      mcd-b-molcas transition-dip-rot transition-vel-rot\
+      susceptibility plot-mcdspectrum
 
 OBJ = 
 
@@ -74,6 +75,9 @@ mchd-a-molcas: $(OBJ) $(OBJ90) mchd-a-molcas.o
 
 mchd-c-molcas: $(OBJ) $(OBJ90) mchd-c-molcas.o
 	$(LINKER) -o mchd-c-molcas mchd-c-molcas.o $(OBJ) $(OBJ90) $(FFLAGS) $(FLIB)
+
+susceptibility: $(OBJ) $(OBJ90) susceptibility.o
+	$(LINKER) -o susceptibility susceptibility.o $(OBJ) $(OBJ90) $(FFLAGS) $(FLIB)
 
 transition-dip-rot: $(OBJ) $(OBJ90) transition-dip-rot.o
 	$(LINKER) -o transition-dip-rot transition-dip-rot.o $(OBJ) $(OBJ90) $(FFLAGS) $(FLIB)

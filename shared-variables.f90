@@ -3,27 +3,27 @@ module shared_variables
 
   ! this module is part of J. Autschbach's set of programs to process
   ! Molcas data for the generation of various types of spectral
-  ! intensities
-  
-  ! (c) 2019-2022 Jochen Autschbach, SUNY Buffalo  
-  
+  ! intensities and other properties
+
+  ! (c) 2019-2025 Jochen Autschbach, SUNY Buffalo
+
   use definitions
 
   implicit none
 
   ! allocatable arrays:
-  
+
   real(KREAL), dimension(:), allocatable :: energy, elevel
-  
+
   integer(KINT), dimension(:), allocatable :: deglist, levels, accl
-  
+
   complex(KREAL), dimension(:,:,:), allocatable :: magdip, eldip, &
     elquad, angmom, velocity, veloquad
 
   ! other variables:
-  
+
   integer(KINT) :: ios, dbg
-  
+
   character(len=LCHARS) :: cs, cstemp, outfile(0:3)
 
   real(KREAL) :: deltae, rtemp, ctemp(2), kT
@@ -44,4 +44,3 @@ module shared_variables
   save dbg
 
 end module shared_variables
-  

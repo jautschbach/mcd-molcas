@@ -22,12 +22,13 @@ FOPT = -g -traceback -fpe0 -O2  -I"${MKLROOT}/include"
 ### Extra libraries
 FLIB =  -L${MKLROOT}/lib -lmkl_intel_lp64 -lmkl_sequential -lmkl_core -lpthread -lm -ldl
 
-FFLAGS = 
+FFLAGS = $(OMP)
 
 .SUFFIXES: .f .F .F90 .f90
 
-BIN = mcd-c-molcas mchd-c-molcas mcd-a-molcas \
-      mcd-b-molcas transition-dip-rot transition-vel-rot plot-mcdspectrum 
+BIN = mcd-c-molcas mchd-c-molcas mcd-a-molcas mchd-a-molcas\
+      mcd-b-molcas transition-dip-rot transition-vel-rot\
+      susceptibility plot-mcdspectrum
 
 OBJ = 
 
@@ -63,8 +64,14 @@ mcd-a-molcas: $(OBJ) $(OBJ90) mcd-a-molcas.o
 mcd-b-molcas: $(OBJ) $(OBJ90) mcd-b-molcas.o
 	$(LINKER) -o mcd-b-molcas mcd-b-molcas.o $(OBJ) $(OBJ90) $(FFLAGS) $(FLIB)
 
+mchd-a-molcas: $(OBJ) $(OBJ90) mchd-a-molcas.o
+	$(LINKER) -o mchd-a-molcas mchd-a-molcas.o $(OBJ) $(OBJ90) $(FFLAGS) $(FLIB)
+
 mchd-c-molcas: $(OBJ) $(OBJ90) mchd-c-molcas.o
 	$(LINKER) -o mchd-c-molcas mchd-c-molcas.o $(OBJ) $(OBJ90) $(FFLAGS) $(FLIB)
+
+susceptibility: $(OBJ) $(OBJ90) susceptibility.o
+	$(LINKER) -o susceptibility susceptibility.o $(OBJ) $(OBJ90) $(FFLAGS) $(FLIB)
 
 transition-dip-rot: $(OBJ) $(OBJ90) transition-dip-rot.o
 	$(LINKER) -o transition-dip-rot transition-dip-rot.o $(OBJ) $(OBJ90) $(FFLAGS) $(FLIB)

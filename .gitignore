@@ -20,6 +20,8 @@ mchd-a-molcas
 mchd-c-molcas
 plot-mcdspectrum
 transition-dip-rot
+transition-vel-rot
+susceptibility
 
 # python cache
 __pycache__
@@ -27,6 +29,5 @@ __pycache__
 # Sphinx documentation build
 docs/build
 
-transition-vel-rot
 tests/*-temp
 

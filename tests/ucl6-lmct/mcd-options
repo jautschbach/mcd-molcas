@@ -1,2 +1,12 @@
-&options degen = 2, temp = 5, nstates = 308, theta=F,
-skip = 12, ddelta=1e-5, magdiag=.F., print_d=.F., print_m=.F., oldspiny=.T. /
+&options 
+degen = 2, 
+temp = 5, 
+nstates = 308, 
+theta=F,
+skip = 12, 
+ddelta=1e-5, 
+magdiag=.F., 
+print_d=.F., 
+print_m=.F., 
+oldspiny=.T. 
+/

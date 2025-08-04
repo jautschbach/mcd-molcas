@@ -3,16 +3,16 @@ module constants_parameters
 
   ! this module is part of J. Autschbach's set of programs to process
   ! Molcas data for the generation of various types of spectral
-  ! intensities
-  
-  ! (c) 2019-2022 Jochen Autschbach, SUNY Buffalo  
+  ! intensities and other properties
+
+  ! (c) 2019-2025 Jochen Autschbach, SUNY Buffalo
 
   use definitions
 
   implicit none
 
   ! numerical constants:
-  
+
   real(KREAL), parameter :: zero=0.0_KREAL
   real(KREAL), parameter :: one=1.0_KREAL
   real(KREAL), parameter :: two=2.0_KREAL
@@ -23,6 +23,7 @@ module constants_parameters
   real(KREAL), parameter :: oneby15=(one/15.0_KREAL)
   real(KREAL), parameter :: small=1.0E-5_KREAL
   real(KREAL), parameter :: tiny=1E-10_KREAL
+  real(KREAL), parameter :: explim=100
 
   complex(KREAL), parameter :: c0=cmplx( zero, zero, kind(KREAL))
   complex(KREAL), parameter :: cp1=cmplx( one,  zero, kind(KREAL))
@@ -30,8 +31,9 @@ module constants_parameters
   complex(KREAL), parameter :: sqm1=cmplx( zero, one, kind(KREAL))
 
   ! physical constants, most from 2014 CODATA:
-  
+
   real(KREAL), parameter :: ge=2.00231930436182E0_KREAL  ! g_e factor
+  !real(KREAL), parameter :: ge=2.00000000000000E0_KREAL  ! g_e factor *test*
   real(KREAL), parameter :: debye = 2.5417463E0_KREAL    ! au -> Debye
   real(KREAL), parameter :: au2cm=2.194746313702E+5_KREAL ! au -> cm**(-1)
   real(KREAL), parameter :: au2ev=27.21138602E0_KREAL    ! au -> eV
@@ -62,21 +64,20 @@ module constants_parameters
   ! XX=1, XY=YX=2, XZ=ZX=3, YY=4, YZ=ZY=5, ZZ=6
 
   integer(KINT), dimension(3,3), parameter :: &
-    qindex = RESHAPE((/ 1, 2, 3, 2, 4, 5, 3, 5, 6/) ,shape(qindex))  
+    qindex = RESHAPE((/ 1, 2, 3, 2, 4, 5, 3, 5, 6/) ,shape(qindex))
 
   ! other parameters, incl. file I/O units
 
   integer(KINT), parameter :: maxrecs = 1000000, nmax=10000
-  
+
   integer(KINT), parameter :: out = 6, err = 0, iu_e = 7, iu_d = 8, iu_m = 9, &
     iu_op=5
-  
-  integer(KINT), dimension(0:3), parameter :: & 
+
+  integer(KINT), dimension(0:3), parameter :: &
     iu_out = (/10, 11, 12, 13/)
 
   ! name of the file from where we read the namelist with program options
   character(len=11), parameter :: optfile='options.dat'
 
-  
+
 end module constants_parameters
-  
