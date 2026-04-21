@@ -76,7 +76,7 @@ program mchd_a_molcas
 
   magdiag = .false. ! 
   ! if true, require that degenerate states diagonalize
-  ! the Zeeman operator. The option is ignored in this code even if .true.
+  ! the Zeeman operator. 
 
   ! default delta criterion for degeneracy, in au
   ddelta = 1E-5_KREAL
