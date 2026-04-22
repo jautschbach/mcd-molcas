@@ -8,5 +8,6 @@ ddelta=1e-5,
 magdiag=.F., 
 print_d=.F., 
 print_m=.F., 
-oldspiny=.T. 
+oldspiny=.T.,
+specgen=.F.
 /

@@ -69,10 +69,6 @@ program mcd_a_molcas
   ! default delta criterion for degeneracy, in au
   ddelta = 1E-5_KREAL
 
-  usemag = .false. ! determines the A-term by replacing the electronic dipole with the magnetic dipole.
-  !The contribution of the magetic dipole is usually negectable. This has been implemented for all terms
-  !by only debugged for the C-term
-
   ! default options below will lead to a crash, this is to make sure
   ! that actual data for the electronic states are given in the input file:
   

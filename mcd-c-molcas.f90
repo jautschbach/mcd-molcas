@@ -64,9 +64,6 @@ program mcd_c_molcas
   print_d = .false. ! options for printing detailed data
   print_m = .false. ! for analysis purposes
 
-  usemag = .false. ! determines the C-term by replacing the electronic dipole with the magnetic dipole.
-  !The contribution of the magetic dipole is usually negectable.
-
   magdiag = .false. ! the original version of this code required a
   ! diagonalization of the magnetic moment operator in the basis of 
   ! the degenerate ground state components.

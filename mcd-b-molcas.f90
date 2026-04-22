@@ -40,8 +40,9 @@ program mcd_b_molcas
 
   ! in-line functions
 
-  real(KREAL) :: waveno
+  real(KREAL) :: waveno, evolt
   waveno(rtemp) = rtemp * au2cm
+  evolt(rtemp) = rtemp * au2ev
 
   ! ============================================================================
 
@@ -68,11 +69,6 @@ program mcd_b_molcas
   ! We use the equations from Piepho & Schatz, pp.
   ! 84 - 86, which do not require that degenerate states diagonalize
   ! the Zeeman operator. The option is ignored in this code even if T
-
-
-  usemag = .false. ! determines the B-term by replacing the electronic dipole with the magnetic dipole.
-  !The contribution of the magetic dipole is usually negectable. This has been implemented for all terms
-  !by only debugged for the C-term
 
   ! default delta criterion for degeneracy, in au
   ddelta = 1E-5_KREAL
@@ -243,13 +239,17 @@ program mcd_b_molcas
     
     ntemp = nlevels - skip - 1
     if (ntemp.lt.1) stop 'attempting to print data for less than 1 level'
-        write(iu_out(idir),'(a,i7,a/1x,a,i7,a,f7.2,a,l,a///a)') &
-      '&plot nsyme(1)=',ntemp, &
-      ', ndegen(1)=1, sigma=1000, sharpen=1, npoints=300,', &
-      'nexcit=',ntemp,', invert=F, waveno=T, term=''B'', temp=',temp,&
-      ', theta=',theta,' /', &
-      '#  E(cm**-1), Re-B (au), Re-B (D**2), Im-B (au), Im-B (D**2)'
-
+    if (specgen) then
+      write(iu_out(idir),'(a,i0,a)') &
+        '#',ntemp,'  E(eV), Re-B (au)'
+    else
+      write(iu_out(idir),'(a,i7,a/1x,a,i7,a,f7.2,a,l,a///a)') &
+        '&plot nsyme(1)=',ntemp, &
+        ', ndegen(1)=1, sigma=1000, sharpen=1, npoints=300,', &
+        'nexcit=',ntemp,', invert=F, waveno=T, term=''B'', temp=',temp,&
+        ', theta=',theta,' /', &
+        '#  E(cm**-1), Re-B (au), Re-B (D**2), Im-B (au), Im-B (D**2)'
+    end if ! specgen
   end do ! idir
   
   ! -----------------------------------------------------
@@ -394,9 +394,14 @@ program mcd_b_molcas
     
     do ilevel = 2+skip,nlevels
       deltae = elevel(ilevel) - elevel(1)
-      write (iu_out(idir),'(1x,f14.2,3x,4(f20.8,2x))') &
-        waveno(deltae), aimag(clist(ilevel)), aimag(clist(ilevel)*(debye**2)), &
-        real(clist(ilevel)), real(clist(ilevel)*(debye**2))
+      if (specgen) then
+        write (iu_out(idir),'(1x,f14.5,3x,f20.8)') &
+          evolt(deltae), aimag(clist(ilevel))
+      else
+        write (iu_out(idir),'(1x,f14.2,3x,4(f20.8,2x))') &
+          waveno(deltae), aimag(clist(ilevel)), aimag(clist(ilevel)*(debye**2)), &
+          real(clist(ilevel)), real(clist(ilevel)*(debye**2))
+      end if
     end do
     
     
@@ -410,9 +415,14 @@ program mcd_b_molcas
   
   do ilevel = 2+skip,nlevels
     deltae = elevel(ilevel) - elevel(1)
-    write (iu_out(0),'(1x,f14.2,3x,4(f20.8,2x))') &
-      waveno(deltae), aimag(ctav(ilevel)), aimag(ctav(ilevel)*(debye**2)), &
-      real(ctav(ilevel)), real(ctav(ilevel)*(debye**2))
+    if (specgen) then
+      write (iu_out(0),'(1x,f14.5,3x,f20.8)') &
+        evolt(deltae), aimag(ctav(ilevel))
+    else
+      write (iu_out(0),'(1x,f14.2,3x,4(f20.8,2x))') &
+        waveno(deltae), aimag(ctav(ilevel)), aimag(ctav(ilevel)*(debye**2)), &
+        real(ctav(ilevel)), real(ctav(ilevel)*(debye**2))
+    end if
   end do
   
   
