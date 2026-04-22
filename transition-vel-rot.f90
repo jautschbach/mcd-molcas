@@ -13,11 +13,6 @@ program transition_vel_rot
   ! of -1 for the electron charge. We therefore generate the magnetic moment
   ! matrix elements also with a negative pre-factor.
 
-  ! this programs's options are controlled by a Fortran namelist
-  ! input.  the namelist is called 'options' and read from a file
-  ! called 'options.dat' defined in the constants_parameters module.
-  ! For further details see the code & comments below.
-
   use definitions
 
   use namelist_module

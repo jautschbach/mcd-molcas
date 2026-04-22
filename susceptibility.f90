@@ -4,9 +4,6 @@ program susceptibility
 
   ! (c) 2025, Jochen Autschbach, SUNY Buffalo
 
-  ! this programs's options are controlled by a Fortran namelist
-  ! input.  the namelist is called 'options' and read from a file
-  ! called 'options.dat' defined in the constants_parameters module.
   ! Set trange(1:2) in options.dat for the start and end temperature
   ! to be used in this calculation.
   !
