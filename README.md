@@ -9,6 +9,17 @@ the RASSI program of the [OpenMolcas](https://github.com/Molcas/OpenMolcas) quan
 tools have been added over time, such as a code for the van Vleck
 magnetic susceptibility.
 
+The programs, as set up, require a recent (ca. 2018 or later) version
+of Molcas that has the RASSI PRPRint keyword to write dipole, spin,
+and angular momentum matrix elements to files named dipole-X.txt,
+spin-X.txt and angmom-X.txt, rescpectively, with X = 1,2,3 for the
+Cartesian components x, y, z. We did this for two reasons:
+1. convenience 2. to get machine precision data instead of parsing
+the Molcas output. Program options are controlled by Fortran namelist input.
+The namelist is called 'options' and read from a file 
+`options.dat`. For details see the code, esp. `namelist-module.f90`, 
+and comments below.
+
 The code in this repository has been used previously for the following
 publications (and a few others):
 

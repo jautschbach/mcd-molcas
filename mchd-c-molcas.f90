@@ -9,11 +9,6 @@ program mchd_c_molcas
   ! page 328 of Barron's Molecular Light Scattering anf Optical
   ! Activity, 2nd edition
 
-  ! this programs's options are controlled by a Fortran namelist
-  ! input.  the namelist is called 'options' and read from a file
-  ! called 'options.dat' defined in the constants_parameters module.
-  ! For further details see the code & comments below.
-
   use definitions
 
   use namelist_module

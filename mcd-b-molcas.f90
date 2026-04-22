@@ -2,21 +2,9 @@ program mcd_b_molcas
 
   ! calculate MCD B-term intensities from Molcas data
 
-  ! (c) 2018, 2019 Jochen Autschbach, SUNY Buffalo
+  ! (c) 2018-2026 Jochen Autschbach, SUNY Buffalo
 
   ! Implementation according to Piepho & Schatz (1983), pages 79 - 88.
-
-  ! the code, as set up, requires a modified version of Molcas that writes
-  ! dipole, spin, and angular momentum matrix elements to files named
-  ! dipole-X.txt, spin-X.txt and angmom-X.txt, rescpectively, with
-  ! X = 1,2,3 for the Cartesian components x, y, z. We did this for two
-  ! reasons: 1. convenience 2. to get machine precision data instead of
-  ! parsing the Molcas output.
-
-  ! this programs's options are controlled by a Fortran namelist input.
-  ! the namelist is called 'options' and read from a file called
-  ! 'options.dat'. For details see the code & comments below.
-
   ! Note that we use a finite sum over states for the B-terms, and
   ! therefore the B-terms are only approximate. 
 
