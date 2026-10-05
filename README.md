@@ -1,6 +1,6 @@
 # mcd-molcas
 
-Copyright (C) Jochen Autschbach, 2018-2025
+Copyright (C) Jochen Autschbach, 2018-2026
 
 Tools for calculating magnetic circular dichroism (MCD),
 magneto-chiral dichroism (MChD), and natural electronic circular
@@ -22,6 +22,9 @@ and comments below.
 
 The code in this repository has been used previously for the following
 publications (and a few others):
+
+Grasser, M.; Gascoin, M.; Atzori, M.; Autschbach, J.; Le Guennic, B., ‘Theoretical Assessment of Magneto-Chiral Dichroism in a Chiral Ytterbium(III) Complex’, J. Am. Chem. Soc. 2026, 146, 33453–33459.
+URL https://doi.org/10.1021/jacs.6c08513
 
 Curran, D. J.; Ganguly, G.; Heit, Y. N.; Wolford, N. J.; Minasian,
 S. G.; Löble, M. W.; Cary, S. K.; Kozimor, S. A.; Autschbach, J.;
@@ -125,3 +128,43 @@ files. Some of the functionality requires also electric quadrupole
 matrix elements, or the electric dipole and quadrupole data in
 velocity form. See the example job `ethene-twisted` how to set this
 up.
+
+Based on the created data files, MCD spectra can be prepared by 
+compiling and running
+the included `plot-mcdspectrum.f90` code, which will generate 
+files `graph.dat` and `impulses.dat` that you can plot to show a 'stick spectrum' and 
+a broadened curve. We plan to integrate the generation of broadened spectra 
+for MCD A-, B-, and C-terms with the `plot-spec` functionality in another of our repositories
+with the same name. Once that is done, the description here will be updated accordingly. 
+
+
+The data workup is a bit more involved for the MChD terms, and we provide a synopsis here, focusing on the C-term MChD for which data has been published. The files
+`mchd-c-spectrum-0/1/2/3` contain Barron's MChD terms $C(G)$ and $C(A')$ for the isotropic case
+(0) and for the field in $x$, $y$, or $z$ direction (1/2/3). The first column in the data file is the 
+photon wavenumber (inverse cm) corresponding to the excitations of the system. Upon import, this column  is converted to the frequency $\omega_j$ for the excitations $j = 1,2,3...$ in atomic units (au). The second and third columns in the data files represent $C(G)$ and $C(A')/\omega$ for these transitions, respectively, and both are already divided by $k_B T$, the pre-factor appearing in all C-terms, also in atomic units. The temperature $T$ (in kelvin) is provided as input to the `mchd-c-molcas` program. As formulated by Barron, those $C$ quantities are converted to the MChD with the help of quasi-Lorentzian line shape functions defined as follows: 
+
+$$
+g(\omega,\omega_j,\Gamma_j) = \frac{\omega\Gamma_j}{(\omega_j^2 - \omega^2)^2 + \omega^2\Gamma_j^2}
+$$
+
+$$
+f(\omega,\omega_j,\Gamma_j) = \frac{\omega_j^2 - \omega^2}{(\omega_j^2 - \omega^2)^2 + \omega^2\Gamma_j^2}
+$$
+
+$g$ and $f$ are absorptive and refractive line shape functions, respectively, and not normalized. The parameter $\Gamma_j$ is a dephasing factor that corresponds to the full width at half maximum (FWHM) of the absorption line shape for transition $j$. The broadened MChD is then obtained in atomic units via
+
+$$
+\text{MChD}(\omega) = \sum_j \left [ \omega_j g(\omega,\omega_j,\Gamma_j) \frac{C(G)}{k_B T} - \omega g(\omega,\omega_j,\Gamma_j) \frac{C(A')}{k_B T}\right ] 
+$$
+
+Note that Barron's definition of $C(A')$ includes a factor of $\omega$, which is not included in the 3rd data column in files `mchd-c-spectrum-0/1/2/3`, whereas the factor of $1/(k_B T) is absorbed into the $C(G)$ and $C(A')$ terms printed in the data files. For the A-term (and B-term) MChD, there is no (1/(k_B T)$ prefactor, but the contributions that depend on the electric quadrupoles (labeled by $A'$ in Barron's formalism, with $C(A')$ above being an example) all exclude their common $\omega$ pre-factor. Accordingly, this factor needs to be supplied when the broadened spectrum is generated. 
+
+The final step is the conversion of the MChD to the dimensionless quantity $n^{\prime\uparrow\uparrow}-n^{\prime\uparrow\downarrow}$ where $n'$ is the imaginary part of the complex refractive index. Barron's equation has a pre-factor for a magnetic field with induction $B$ of $(2 \mu_0 c N B)/(3\hbar)$ where $N$ is the number density of the absorbing entities. The remaining quantities in the MChD ($\omega g C(G) / (k_B T)$ and the corresponding quadrupolar contribution) in atomic units correspond to $e^3 a_0^5/\hbar$. Conversion to a concentration of 1 mol/liter entails multiplication by a factor of $1000 N_A$ where $N_A$ is the Avogadro number. Multiplying Barron's pre-factor with the conversion $e^3 a_0^5/\hbar$ from atomic units to SI and changing the concentration to 1 mol/liter creates a numerical  factor of approximately $2.321\cdot 10^{-11}$ to convert the MChD from atomic units to the quantity $n^{\prime\uparrow\uparrow}-n^{\prime\uparrow\downarrow}$ for a particle concentration of 1 mol/liter and a static magnetic field of 1 Tesla.
+
+If you have access to Wolfram Mathematica, the repository contains a notebook `plot-mchd-c.nb` to perform the unit conversions and plot the resulting spectrum. 
+
+
+
+
+
+
