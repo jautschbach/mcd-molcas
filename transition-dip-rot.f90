@@ -56,7 +56,7 @@ program transition_dip_rot
 
   real(KREAL) :: waveno, evolt
   waveno(rtemp) = rtemp * au2cm
-  !evolt(rtemp) = rtemp * au2ev
+  evolt(rtemp) = rtemp * au2ev
 
   ! ============================================================================
 
@@ -293,14 +293,19 @@ program transition_dip_rot
     ntemp = nlevels - skip - 1
     !write (out,*) 'ntemp, nlevels, skip', ntemp, nlevels, skip
     if (ntemp.lt.1) stop 'attempting to print data for less than 1 level'
-        write(iu_out(idir),'(a,i7,a/,a,i7,a,f7.2,a,l,a/a/a/a)') &
-      '&plot nsyme(1)=',ntemp, &
-      ', ndegen(1)=1, sigma=1000, sharpen=1, npoints=300,', &
-      ' nexcit=',ntemp,', invert=F, waveno=T, temp=',temp,&
-      ', theta=',theta,' /', &
-      '# oscillator strength f, rotatory strength R, and D in 1E-40 esu**2 cm**2', &
-      '# the last 2 columns should be zero and are printed for debug purposes', &
-      '#  E(cm**-1), f, R, D, g_lum, Im[f], Im[R]'
+
+    if (specgen) then
+      write(iu_out(idir),'(a,i0,a)') '#',ntemp,'  E(eV), f, R, D, g_lum'
+    else
+      write(iu_out(idir),'(a,i7,a/,a,i7,a,f7.2,a,l,a/a/a/a)') &
+        '&plot nsyme(1)=',ntemp, &
+        ', ndegen(1)=1, sigma=1000, sharpen=1, npoints=300,', &
+        ' nexcit=',ntemp,', invert=F, waveno=T, temp=',temp,&
+        ', theta=',theta,' /', &
+        '# oscillator strength f, rotatory strength R, and D in 1E-40 esu**2 cm**2', &
+        '# the last 2 columns should be zero and are printed for debug purposes', &
+        '#  E(cm**-1), f, R, D, g_lum, Im[f], Im[R]'
+    end if ! specgen
 
   end do ! idir
   
@@ -479,10 +484,15 @@ program transition_dip_rot
     
   do ilevel = 2+skip,nlevels
     deltae = elevel(ilevel) - elevel(1)
-    write (iu_out(idir),'(1x,f14.2,3x,4(f20.8,2x))') &
-      waveno(deltae), &
-      real(cdav(ilevel)),  real(crav(ilevel)), &
-      aimag(cdav(ilevel)), aimag(crav(ilevel))
+    if (specgen) then
+      write (iu_out(idir),'(1x,f14.5,3x,2(f20.8))') &
+        evolt(deltae), real(cdav(ilevel)),  real(crav(ilevel))
+    else
+      write (iu_out(idir),'(1x,f14.2,3x,4(f20.8,2x))') &
+        waveno(deltae), &
+        real(cdav(ilevel)),  real(crav(ilevel)), &
+        aimag(cdav(ilevel)), aimag(crav(ilevel))
+    end if ! specgen
   end do
   
   close (iu_out(idir))
@@ -504,10 +514,15 @@ program transition_dip_rot
     
   do ilevel = 2+skip,nlevels
     deltae = elevel(ilevel) - elevel(1)
-    write (iu_out(idir),'(1x,f14.2,3x,4(f20.8,2x))') &
-      waveno(deltae), &
-      real(cdav(ilevel)),  real(crav(ilevel)), &
-      aimag(cdav(ilevel)), aimag(crav(ilevel))
+    if (specgen) then
+      write (iu_out(idir),'(1x,f14.5,3x,2(f20.8))') &
+        evolt(deltae), real(cdav(ilevel)),  real(crav(ilevel))
+    else
+      write (iu_out(idir),'(1x,f14.2,3x,4(f20.8,2x))') &
+        waveno(deltae), &
+        real(cdav(ilevel)),  real(crav(ilevel)), &
+        aimag(cdav(ilevel)), aimag(crav(ilevel))
+    end if ! specgen
   end do
 
   close (iu_out(idir))
@@ -528,10 +543,15 @@ program transition_dip_rot
     
   do ilevel = 2+skip,nlevels
     deltae = elevel(ilevel) - elevel(1)
-    write (iu_out(idir),'(1x,f14.2,3x,4(f20.8,2x))') &
-      waveno(deltae), &
-      real(cdav(ilevel)),  real(crav(ilevel)), &
-      aimag(cdav(ilevel)), aimag(crav(ilevel))
+    if (specgen) then
+      write (iu_out(idir),'(1x,f14.5,3x,2(f20.8))') &
+        evolt(deltae), real(cdav(ilevel)),  real(crav(ilevel))
+    else
+      write (iu_out(idir),'(1x,f14.2,3x,4(f20.8,2x))') &
+        waveno(deltae), &
+        real(cdav(ilevel)),  real(crav(ilevel)), &
+        aimag(cdav(ilevel)), aimag(crav(ilevel))
+    end if
   end do
 
   close (iu_out(idir))
@@ -551,11 +571,18 @@ program transition_dip_rot
    ! eldipav(ilevel) = 0.0
     deltae = elevel(ilevel) - elevel(1)
     if (eldipav(ilevel) .ne. 0E0_KREAL) then
-    g = crav(ilevel)/eldipav(ilevel)/fourth
-    write (iu_out(idir),'(1x,f14.2,3x,6(f20.8,2x))') &
-      waveno(deltae), &
-      real(cdav(ilevel)),  real(crav(ilevel)), real(eldipav(ilevel)), &
-      real(g), aimag(cdav(ilevel)), aimag(crav(ilevel))
+      g = crav(ilevel)/eldipav(ilevel)/fourth
+      if (specgen) then
+        write (iu_out(idir),'(1x,f14.5,3x,4(f20.8))') &
+          evolt(deltae), real(cdav(ilevel)),  &
+          real(crav(ilevel)), real(eldipav(ilevel)), &
+          real(g)
+      else
+        write (iu_out(idir),'(1x,f14.2,3x,6(f20.8,2x))') &
+          waveno(deltae), &
+          real(cdav(ilevel)),  real(crav(ilevel)), real(eldipav(ilevel)), &
+          real(g), aimag(cdav(ilevel)), aimag(crav(ilevel))
+      end if
     else
     write (iu_out(idir),'(1x,f14.2,3x,3(f20.8,2x),A22,2(f20.8,2x))') &
       waveno(deltae), &

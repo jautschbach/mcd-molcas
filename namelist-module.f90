@@ -18,7 +18,7 @@ module namelist_module
 
   logical :: magdiag, nospin, noangmom, nodip, noquad, novel, &
     print_d, print_m, print_q, theta, polnotprop, &
-    oldspiny, specgen
+    oldspiny, oldmcdc, specgen
 
   namelist /options/ &
     degen, &      ! [int] degeneracy of the ground state. determined automaticcaly if not set
@@ -41,7 +41,8 @@ module namelist_module
     polnotprop, & ! [log] output absorption spectra for x,y,z polarization instead of propagation
     oldspiny, &   ! [log] treat Spin-y matrices as in Molcas from 2029 or prior (see read-data-files.f90)
     trange, &     ! [real(2)] temperature range (K) for susceptibility code
-    specgen       ! [log] create output data files for use with spec-gen (from JA GitHub)
+    specgen, &    ! [log] create output data files for use with spec-gen (from JA GitHub)
+    oldmcdc       ! [log] print C-terms excluding 1/kT factor
 
   ! populate namelist with default options at compile time
 
@@ -50,12 +51,12 @@ module namelist_module
     debuglevel, &
     nospin, noangmom, nodip, noquad, novel, &
     print_d, print_m, print_q, &
-    theta, polnotprop, oldspiny, specgen / &
+    theta, polnotprop, oldspiny, oldmcdc, specgen / &
     0, 0.0_KREAL , 0, 0, 0, .false., 1E-5_KREAL, &
     0, &
     .true., .true.,  .true., .true., .true., &
     .false., .false., .false., &
-    .false., .false., .false., .true. /
+    .false., .false., .false., .false., .true. /
 
   data trange /1.0_KREAL,301.0_KREAL/
 

@@ -216,9 +216,9 @@ program mcd_c_molcas
   prefac = -sqm1 / (degen)
   if (dbg>0) write (out,*) 'prefac = ', prefac
 
-  ! attach the 1/kT factor to prefac
+  ! attach the 1/kT factor to prefac unless compatibility option is set
 
-  prefac = prefac * kTm1
+  if (.not.oldmcdc) prefac = prefac * kTm1
   if (dbg>0) write (out,*) 'prefac/kT = ', prefac
   
   ctav(:) = c0 ! this array will accumulate the isotropic C-term
@@ -242,11 +242,11 @@ program mcd_c_molcas
     if (specgen) then
       write(iu_out(idir),'(a,i0,a)') '#',ntemp,'  E(eV), Re-C (au)'
     else
-      write(iu_out(idir),'(a,i7,a/1x,a,i7,a,f7.2,a,l,a///a)') &
+      write(iu_out(idir),'(a,i7,a/1x,a,i7,a,f7.2,a,l,a,l,a///a)') &
         '&plot nsyme(1)=',ntemp, &
         ', ndegen(1)=1, sigma=1000, sharpen=1, npoints=300,', &
         'nexcit=',ntemp,', invert=F, waveno=T, term=''C'', temp=',temp,&
-        ', theta=',theta,' /', &
+        ', theta=',theta,', oldmcdc=',oldmcdc,' /', &
         '#  E(cm**-1), Re-C (au), Re-C (D**2), Im-C (au), Im-C (D**2)'
     end if ! specgen
 

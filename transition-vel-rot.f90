@@ -35,7 +35,7 @@ program transition_vel_rot
 
   ! in-line functions
 
-  real(KREAL) :: waveno, evolt
+  real(KREAL) :: waveno ! , evolt
   waveno(rtemp) = rtemp * au2cm
   !evolt(rtemp) = rtemp * au2ev
 

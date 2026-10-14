@@ -9,5 +9,6 @@ magdiag=.F.,
 print_d=.F., 
 print_m=.F., 
 oldspiny=.T.,
-specgen=.F.
+specgen=.F.,
+oldmcdc=.T.
 /

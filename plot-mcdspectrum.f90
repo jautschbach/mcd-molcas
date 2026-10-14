@@ -38,7 +38,7 @@ program plotspec
     xmcd = 0.001480279d0, &
     t2gauss = 10000d0
   
-  logical invert, magnify, waveno, theta
+  logical invert, magnify, waveno, theta, oldmcdc
   
   double precision :: window(2), sigma, sharpen, eshift, border, temp
   data window /0d0,0d0/
@@ -49,7 +49,7 @@ program plotspec
   
   namelist /plot/ npoints, sigma, nsyme, nexcit, sharpen, eshift, &
      &            border, ndegen, invert, window,   &
-     &            magnification, waveno, term, temp, theta
+     &            magnification, waveno, term, temp, theta, oldmcdc
 
   ! Here is an example for some typical settings:
   ! &plot nsyme(1)=20,35, ndegen(1)=1,1, sigma=0.13, sharpen=1, npoints=300, 
@@ -116,9 +116,12 @@ program plotspec
     deriv = .false.
   else if (term.eq.'C') then
     ! update 2026-10: the division by kT in atomic units is done
-    ! already in mcd-c-molcas
-    ! prefac = xmcd / (boltz * temp)
-    prefac = xmcd
+    ! already in mcd-c-molcas unless option oldmcdc is set T
+    if (oldmcdc) then
+      prefac = xmcd / (boltz * temp)
+    else
+      prefac = xmcd
+    end if
     deriv = .false.
   else
     stop 'MCD term spec is not A, B, or C. Aborting.'
