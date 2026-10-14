@@ -163,7 +163,19 @@ The final step is the conversion of the MChD to the dimensionless quantity $n^{\
 
 If you have access to Wolfram Mathematica, the repository contains a notebook `plot-mchd-c.nb` to perform the unit conversions and plot the resulting spectrum. 
 
+## Recent Updates
 
+2026-10: Changed default options for mcd and mchd codes to print the resulting
+data files in a format that the `spec-gen` tool (available from our repository of the same name) can digest. For backward compatibility, also with the test data sets, the input namelist now recognizes an option `specgen` which is set to
+`.T.` by default.
+
+2026-10: The MCD C-terms are now printed in the data files including
+the factor of 1/kT. The code `plot-mcdspectrum` was adapted,
+accordingly. An option `oldmcdc` may be porovided in the namelist
+input for `mcd-c-molcas` to restore the previous behavior. The option
+is also recognized by `plot-mcdspectrum` to restore its previous
+default behavior. With `oldmcdc=.F.`, which is the new default,
+`spec-gen` can be used for broadening the spectra.
 
 
 
