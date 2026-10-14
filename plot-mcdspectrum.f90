@@ -115,7 +115,10 @@ program plotspec
     prefac = xmcd
     deriv = .false.
   else if (term.eq.'C') then
-    prefac = xmcd / (boltz * temp)
+    ! update 2026-10: the division by kT in atomic units is done
+    ! already in mcd-c-molcas
+    ! prefac = xmcd / (boltz * temp)
+    prefac = xmcd
     deriv = .false.
   else
     stop 'MCD term spec is not A, B, or C. Aborting.'

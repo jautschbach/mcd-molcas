@@ -55,7 +55,7 @@ module namelist_module
     0, &
     .true., .true.,  .true., .true., .true., &
     .false., .false., .false., &
-    .false., .false., .false., .false. /
+    .false., .false., .false., .true. /
 
   data trange /1.0_KREAL,301.0_KREAL/
 

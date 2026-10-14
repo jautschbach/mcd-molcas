@@ -30,13 +30,13 @@ program mchd_a_molcas
 
   complex(KREAL) :: cg, ctmp, ca, preg, prea
 
-  integer(KINT) :: idir, jdir, kdir, i, i1, i2, j, j1, j2
+  integer(KINT) :: idir, jdir, kdir, i1, j
   
-  integer(KINT) ::  ilevel, jlevel, is1, is2, js, js1, js2
+  integer(KINT) ::  ilevel, jlevel, is1, js
  
   ! in-line functions
 
-  real(KREAL) :: waveno, evolt
+  real(KREAL) :: waveno !, evolt
   waveno(rtemp) = rtemp * au2cm
   !evolt(rtemp) = rtemp * au2ev
 
@@ -369,11 +369,14 @@ program mchd_a_molcas
             end do ! jdir
             
           else  ! magdiag necessary currently
-            stop 'Not yet supported'
+            stop 'magdiag=.F. is not yet supported in this code'
 
-            !!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!
-            !   here Piepho and Schatz version should have to be developped   !
-            !!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!
+            ! --------------------------------------------------------
+            !   here should go the MChD analog of what Piepho & Schatz
+            !   did for the MCD expressions going from (4.5.16) on
+            !   p. 79 to (4.6.14) on p. 88. Results will need to be
+            !   the same.
+            !   --------------------------------------------------------
 
             ! do i2 = 1, levels(ilevel)
               

@@ -27,8 +27,9 @@ program mcd_a_molcas
  
   ! in-line functions
 
-  real(KREAL) :: waveno
+  real(KREAL) :: waveno, evolt
   waveno(rtemp) = rtemp * au2cm
+  evolt(rtemp) = rtemp * au2ev
 
   ! ============================================================================
 
@@ -213,12 +214,16 @@ program mcd_a_molcas
     
     ntemp = nlevels - skip - 1
     if (ntemp.lt.1) stop 'attempting to print data for less than 1 level'
-        write(iu_out(idir),'(a,i7,a/1x,a,i7,a,f7.2,a,l,a///a)') &
-      '&plot nsyme(1)=',ntemp, &
-      ', ndegen(1)=1, sigma=1000, sharpen=1, npoints=300,', &
-      'nexcit=',ntemp,', invert=F, waveno=T, term=''A'', temp=',temp,&
-      ', theta=',theta,' /', &
-      '#  E(cm**-1), Re-A (au), Re-A (D**2), Im-A (au), Im-A (D**2), f'
+    if (specgen) then
+      write(iu_out(idir),'(a,i0,a)') '#',ntemp,'  E(eV), Re-A (au)'
+    else    
+      write(iu_out(idir),'(a,i7,a/1x,a,i7,a,f7.2,a,l,a///a)') &
+        '&plot nsyme(1)=',ntemp, &
+        ', ndegen(1)=1, sigma=1000, sharpen=1, npoints=300,', &
+        'nexcit=',ntemp,', invert=F, waveno=T, term=''A'', temp=',temp,&
+        ', theta=',theta,' /', &
+        '#  E(cm**-1), Re-A (au), Re-A (D**2), Im-A (au), Im-A (D**2), f'
+    end if ! specgen
 
   end do ! idir
   
@@ -334,9 +339,14 @@ program mcd_a_molcas
 
     do ilevel = 2+skip,nlevels
       deltae = elevel(ilevel) - elevel(1)
-      write (iu_out(idir),'(1x,f14.2,3x,4(f20.8,2x))') &
-        waveno(deltae), real(clist(ilevel)), real(clist(ilevel)*(debye**2)), &
-        aimag(clist(ilevel)), aimag(clist(ilevel)*(debye**2))
+      if (specgen) then
+        write (iu_out(idir),'(1x,f14.5,3x,f20.8)') &
+          evolt(deltae), aimag(clist(ilevel))
+      else
+        write (iu_out(idir),'(1x,f14.2,3x,4(f20.8,2x))') &
+          waveno(deltae), real(clist(ilevel)), real(clist(ilevel)*(debye**2)), &
+          aimag(clist(ilevel)), aimag(clist(ilevel)*(debye**2))
+      end if ! specgen
     end do
 
     
@@ -350,11 +360,15 @@ program mcd_a_molcas
 
   do ilevel = 2+skip,nlevels
     deltae = elevel(ilevel) - elevel(1)
-    write (iu_out(0),'(1x,f14.2,3x,4(f20.8,2x))') &
-      waveno(deltae), real(ctav(ilevel)), real(ctav(ilevel)*(debye**2)), &
-      aimag(ctav(ilevel)), aimag(ctav(ilevel)*(debye**2))
+    if (specgen) then
+      write (iu_out(0),'(1x,f14.5,3x,f20.8)') &
+        evolt(deltae), aimag(ctav(ilevel))
+    else
+      write (iu_out(0),'(1x,f14.2,3x,4(f20.8,2x))') &
+        waveno(deltae), real(ctav(ilevel)), real(ctav(ilevel)*(debye**2)), &
+        aimag(ctav(ilevel)), aimag(ctav(ilevel)*(debye**2))
+    end if ! specgen
   end do
-
 
   ! --------------------
   ! close mcd data files

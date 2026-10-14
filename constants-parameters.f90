@@ -30,18 +30,22 @@ module constants_parameters
   complex(KREAL), parameter :: cm1=cmplx(-one,  zero, kind(KREAL))
   complex(KREAL), parameter :: sqm1=cmplx( zero, one, kind(KREAL))
 
-  ! physical constants, most from 2014 CODATA:
+  ! physical constants from 2022 CODATA:
 
-  real(KREAL), parameter :: ge=2.00231930436182E0_KREAL  ! g_e factor
+  real(KREAL), parameter :: ge=2.00231930436092E0_KREAL  ! g_e factor
   !real(KREAL), parameter :: ge=2.00000000000000E0_KREAL  ! g_e factor *test*
-  real(KREAL), parameter :: debye = 2.5417463E0_KREAL    ! au -> Debye
-  real(KREAL), parameter :: au2cm=2.194746313702E+5_KREAL ! au -> cm**(-1)
-  real(KREAL), parameter :: au2ev=27.21138602E0_KREAL    ! au -> eV
-  real(KREAL), parameter :: boltzcm=0.69503457_KREAL     ! cm**(-1) / K
-  real(KREAL), parameter :: boltzau=3.1668115635E-6_KREAL ! Hartree/K
-  real(KREAL), parameter :: thunit=5.02883E5_KREAL       ! C -> [theta]
-  real(KREAL), parameter :: cspeed=137.035999139E0_KREAL ! speed of light in a.u.
-  real(KREAL), parameter :: csq = cspeed*cspeed         ! c**2
+  real(KREAL), parameter :: au2cm=2.1947463136314E+5_KREAL ! au -> cm**(-1)
+  real(KREAL), parameter :: au2ev=27.211386245981E0_KREAL    ! au -> eV
+  real(KREAL), parameter :: boltzcm=0.6950348004_KREAL     ! cm**(-1) / K
+  real(KREAL), parameter :: boltzev=8.617333262E-5_KREAL   ! eV / K
+  real(KREAL), parameter :: fineconst=7.2973525643E-3_KREAL ! fine structure const.
+
+  ! other conversion constants
+  real(KREAL), parameter :: cspeed=one/fineconst       ! speed of light in a.u.
+  real(KREAL), parameter :: csq = cspeed*cspeed        ! c**2
+  real(KREAL), parameter :: boltzau=boltzev/au2ev      ! Hartree/K
+  real(KREAL), parameter :: debye = 2.5417463E0_KREAL  ! au -> Debye
+  real(KREAL), parameter :: thunit=5.02883E5_KREAL     ! C -> [theta]
 
   ! conversion factors for dipole and rotstrength from
   ! atomic units to 1E-40 CGS, accounting for (1/c) not being included

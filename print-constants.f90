@@ -13,7 +13,7 @@ subroutine print_constants
   
   write (out, '(/1x,a/1x,a//, 9(1x,a,1x,f24.15/))') &
     'Some of the constants that this code may have used internally are:', &
-    '(there may be some trailing numerical noise)', &
+    '(there may be some trailing numerical noise printed)', &
     'c = speed of light in au:      ', cspeed, &
     'c**2 :                         ', csq, &
     'Hartree to cm**(-1) conversion:', au2cm, &
