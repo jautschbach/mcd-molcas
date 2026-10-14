@@ -36,9 +36,9 @@ program mchd_a_molcas
  
   ! in-line functions
 
-  real(KREAL) :: waveno !, evolt
+  real(KREAL) :: waveno, evolt
   waveno(rtemp) = rtemp * au2cm
-  !evolt(rtemp) = rtemp * au2ev
+  evolt(rtemp) = rtemp * au2ev
 
   ! ============================================================================
 
@@ -255,13 +255,17 @@ program mchd_a_molcas
     
     ntemp = nlevels - skip - 1
     if (ntemp.lt.1) stop 'attempting to print data for less than 1 level'
+    if (specgen) then
+      write(iu_out(idir),'(a,i0,a)') '#',ntemp,'  E(eV), A(G), A(A'')'
+    else
       write(iu_out(idir),'(a,i7,a/,a,i7,a,f7.2,a,l,a/a/a/a)') &
-     '# &plot nsyme(1)=',ntemp, &
-      ', ndegen(1)=1, sigma=1000, sharpen=1, npoints=300,', &
-      '# nexcit=',ntemp,', invert=F, waveno=T, term=''A'', temp=',temp,&
-      ', theta=',theta,' /', &
-      '# the last 2 columns should be effectively zero', &
-      '#  E(cm**-1), Re-A(G), Im-A(A'')/omega, Im-A(G)/omega, Re-A(A'')'
+        '# &plot nsyme(1)=',ntemp, &
+        ', ndegen(1)=1, sigma=1000, sharpen=1, npoints=300,', &
+        '# nexcit=',ntemp,', invert=F, waveno=T, term=''A'', temp=',temp,&
+        ', theta=',theta,' /', &
+        '# the last 2 columns should be effectively zero', &
+        '#  E(cm**-1), Re-A(G), Im-A(A'')/omega, Im-A(G)/omega, Re-A(A'')'
+    end if ! specgen
 
   end do ! idir
   
@@ -432,10 +436,15 @@ program mchd_a_molcas
     
     do ilevel = 2+skip,nlevels
       deltae = elevel(ilevel) - elevel(1)
-      write (iu_out(idir),'(1x,f14.4,3x,4(f25.15,2x))') &
-        waveno(deltae), &
-        real(cglist(ilevel)),  aimag(calist(ilevel)), &
-        aimag(cglist(ilevel)), real(calist(ilevel))
+      if (specgen) then
+        write (iu_out(idir),'(1x,f14.5,3x,f20.8)') &
+          evolt(deltae), real(cglist(ilevel)), aimag(calist(ilevel))
+      else
+        write (iu_out(idir),'(1x,f14.4,3x,4(f25.15,2x))') &
+          waveno(deltae), &
+          real(cglist(ilevel)),  aimag(calist(ilevel)), &
+          aimag(cglist(ilevel)), real(calist(ilevel))
+      end if ! specgen
     end do
 
     
@@ -449,10 +458,15 @@ program mchd_a_molcas
 
   do ilevel = 2+skip,nlevels
     deltae = elevel(ilevel) - elevel(1)
-    write (iu_out(0),'(1x,f14.4,3x,4(f25.15,2x))') &
-              waveno(deltae), &
+    if (specgen) then
+      write (iu_out(idir),'(1x,f14.5,3x,f20.8)') &
+        evolt(deltae), real(cgav(ilevel)), aimag(caav(ilevel))
+    else
+      write (iu_out(0),'(1x,f14.4,3x,4(f25.15,2x))') &
+        waveno(deltae), &
         real(cgav(ilevel)),  aimag(caav(ilevel)), &
         aimag(cgav(ilevel)), real(caav(ilevel))
+    end if ! specgen
   end do
 
 

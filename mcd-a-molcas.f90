@@ -341,7 +341,7 @@ program mcd_a_molcas
       deltae = elevel(ilevel) - elevel(1)
       if (specgen) then
         write (iu_out(idir),'(1x,f14.5,3x,f20.8)') &
-          evolt(deltae), aimag(clist(ilevel))
+          evolt(deltae), real(clist(ilevel))
       else
         write (iu_out(idir),'(1x,f14.2,3x,4(f20.8,2x))') &
           waveno(deltae), real(clist(ilevel)), real(clist(ilevel)*(debye**2)), &
@@ -362,7 +362,7 @@ program mcd_a_molcas
     deltae = elevel(ilevel) - elevel(1)
     if (specgen) then
       write (iu_out(0),'(1x,f14.5,3x,f20.8)') &
-        evolt(deltae), aimag(ctav(ilevel))
+        evolt(deltae), real(ctav(ilevel))
     else
       write (iu_out(0),'(1x,f14.2,3x,4(f20.8,2x))') &
         waveno(deltae), real(ctav(ilevel)), real(ctav(ilevel)*(debye**2)), &

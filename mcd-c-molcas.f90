@@ -240,7 +240,7 @@ program mcd_c_molcas
     if (ntemp.lt.1) stop 'attempting to print data for less than 1 level'
 
     if (specgen) then
-      write(iu_out(idir),'(a,i0,a)') '#',ntemp,'  E(eV), Re-C (au)'
+      write(iu_out(idir),'(a,i0,a)') '#',ntemp,'  E(eV), C/(kT) (au)'
     else
       write(iu_out(idir),'(a,i7,a/1x,a,i7,a,f7.2,a,l,a,l,a///a)') &
         '&plot nsyme(1)=',ntemp, &
@@ -398,7 +398,7 @@ program mcd_c_molcas
       deltae = elevel(ilevel) - elevel(1)
       if (specgen) then
         write (iu_out(idir),'(1x,f14.5,3x,f20.8)') &
-          evolt(deltae), aimag(clist(ilevel))
+          evolt(deltae), real(clist(ilevel))
       else
       write (iu_out(idir),'(1x,f14.2,3x,4(f20.8,2x))') &
         waveno(deltae), real(clist(ilevel)), real(clist(ilevel)*(debye**2)), &
@@ -419,7 +419,7 @@ program mcd_c_molcas
     deltae = elevel(ilevel) - elevel(1)
     if (specgen) then
       write (iu_out(0),'(1x,f14.5,3x,f20.8)') &
-        evolt(deltae), aimag(ctav(ilevel))
+        evolt(deltae), real(ctav(ilevel))
       else
         write (iu_out(0),'(1x,f14.2,3x,4(f20.8,2x))') &
           waveno(deltae), real(ctav(ilevel)), real(ctav(ilevel)*(debye**2)), &

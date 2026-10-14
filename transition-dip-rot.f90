@@ -570,25 +570,24 @@ program transition_dip_rot
   do ilevel = 2+skip,nlevels
    ! eldipav(ilevel) = 0.0
     deltae = elevel(ilevel) - elevel(1)
-    if (eldipav(ilevel) .ne. 0E0_KREAL) then
-      g = crav(ilevel)/eldipav(ilevel)/fourth
-      if (specgen) then
-        write (iu_out(idir),'(1x,f14.5,3x,4(f20.8))') &
-          evolt(deltae), real(cdav(ilevel)),  &
-          real(crav(ilevel)), real(eldipav(ilevel)), &
-          real(g)
-      else
+    if (specgen) then
+      write (iu_out(idir),'(1x,f14.5,3x,2(f20.8))') &
+        evolt(deltae), real(cdav(ilevel)),  &
+        real(crav(ilevel))
+    else
+      if (abs(eldipav(ilevel)) .gt. tiny) then
+        g = crav(ilevel)/eldipav(ilevel)/fourth
         write (iu_out(idir),'(1x,f14.2,3x,6(f20.8,2x))') &
           waveno(deltae), &
           real(cdav(ilevel)),  real(crav(ilevel)), real(eldipav(ilevel)), &
           real(g), aimag(cdav(ilevel)), aimag(crav(ilevel))
+      else
+        write (iu_out(idir),'(1x,f14.2,3x,3(f20.8,2x),A22,2(f20.8,2x))') &
+          waveno(deltae), &
+          real(cdav(ilevel)),  real(crav(ilevel)), real(eldipav(ilevel)), &
+          '----------  ', aimag(cdav(ilevel)), aimag(crav(ilevel))
       end if
-    else
-    write (iu_out(idir),'(1x,f14.2,3x,3(f20.8,2x),A22,2(f20.8,2x))') &
-      waveno(deltae), &
-      real(cdav(ilevel)),  real(crav(ilevel)), real(eldipav(ilevel)), &
-      '----------  ', aimag(cdav(ilevel)), aimag(crav(ilevel))
-    end if
+    end if ! specgen
   end do
 
   close (iu_out(idir))

@@ -1,6 +1,6 @@
 # mcd-molcas
 
-Copyright (C) Jochen Autschbach, 2018-2026
+Copyright (C) Jochen Autschbach & collaborators, 2018-2026
 
 Tools for calculating magnetic circular dichroism (MCD),
 magneto-chiral dichroism (MChD), and natural electronic circular
@@ -138,12 +138,12 @@ Use the programs `mcd-X-molcas` with `X` = `a`, `b`, or `c`, for A-,
 B-, and C-terms, respectively. Required input are the matrix elements
 for `spin`, `angmom`, and `dipole`, i.e., the electron spin and
 orbital angular momentum and the electric dipole moment.  The original
-setup is obtained with option `specgen=.F.` such that, based on the
+setup is obtained with option `specgen=F` such that, based on the
 created data files, MCD spectra can be prepared by running the
 included `plot-mcdspectrum` program. This will generate files
 `graph.dat` and `impulses.dat` that you can plot to show a 'stick
 spectrum' and a broadened curve. Recently, we introduced the option
-`specgen`, set to `.T.` by default, which will produce data files that
+`specgen`, set to `T` by default, which will produce data files that
 can be processed with our `plot-spec` code available in another of our
 repositories with the same name.
 
@@ -151,7 +151,7 @@ The C-term of MCD includes a factor of $1/(kT)$, where $k$ is the
 Boltzmann constant and $T$ is the absolute temperature. In older
 versions of `mcd-c-molcas`, the C-terms were printed without this
 $1/(kT)$ factor, and `plot-mcdspectrum` took care of it. This behavior
-can be restored with the option `oldmcdc=.T.`. The new default
+can be restored with the option `oldmcdc=T`. The new default
 (`oldmcdc=.F.`) is to absorb $1/(kT)$ in atomic units into the C-terms
 printed by `mcd-c-molcas`, which was done to be able to use `spec-gen`
 for broadening without the need to provide the temperature again.
@@ -163,8 +163,8 @@ provide a synopsis here, focusing on the C-term MChD for which data
 has been published. The files `mchd-c-spectrum-0/1/2/3` contain
 Barron's MChD terms $C(G)$ and $C(A')$ for the isotropic case (0) and
 for the field in $x$, $y$, or $z$ direction (1/2/3). The first column
-in the data file is either (`specgen=.F.`) the photon wavenumber
-(inverse cm) or (`specgen=.T.`) the energy (in eV) corresponding to
+in the data file is either (`specgen=F`) the photon wavenumber
+(inverse cm) or (`specgen=T`) the energy (in eV) corresponding to
 the excitations of the system. Upon import, this column is converted
 to the frequency $\omega_j$ for the excitations $j = 1,2,3...$ in
 atomic units (au). The second and third columns in the data files
@@ -194,13 +194,13 @@ Note that Barron's definition of $C(A')$ includes a factor of $\omega$, which is
 
 The final step is the conversion of the MChD to the dimensionless quantity $n^{\prime\uparrow\uparrow}-n^{\prime\uparrow\downarrow}$ where $n'$ is the imaginary part of the complex refractive index. Barron's equation has a pre-factor for a magnetic field with induction $B$ of $(2 \mu_0 c N B)/(3\hbar)$ where $N$ is the number density of the absorbing entities. The remaining quantities in the MChD ($\omega g C(G) / (k_B T)$ and the corresponding quadrupolar contribution) in atomic units correspond to $e^3 a_0^5/\hbar$. Conversion to a concentration of 1 mol/liter entails multiplication by a factor of $1000 N_A$ where $N_A$ is the Avogadro number. Multiplying Barron's pre-factor with the conversion $e^3 a_0^5/\hbar$ from atomic units to SI and changing the concentration to 1 mol/liter creates a numerical  factor of approximately $2.321\cdot 10^{-11}$ to convert the MChD from atomic units to the quantity $n^{\prime\uparrow\uparrow}-n^{\prime\uparrow\downarrow}$ for a particle concentration of 1 mol/liter and a static magnetic field of 1 Tesla.
 
-If you have access to Wolfram Mathematica, the repository contains a notebook `plot-mchd-c.nb` to perform the unit conversions and plot the resulting spectrum. You will need to use `specgen=.F.` or adapt the notebook accordingly.  
+If you have access to Wolfram Mathematica, the repository contains a notebook `plot-mchd-c.nb` to perform the unit conversions and plot the resulting spectrum. You will need to use `specgen=F` or adapt the notebook accordingly.  
 
 ## Notable Updates (2026 and later)
 
 2026-10: Changed default options for mcd and mchd codes to print the resulting
 data files in a format that the `spec-gen` tool (available from our repository of the same name) can digest. For backward compatibility, also with the test data sets, the input namelist now recognizes an option `specgen` which is set to
-`.T.` by default, to produce `spec-gen` input. `specgen=.F.` produces the original output data suitable for processing with `plot-mcdspectrum`.
+`T` by default, to produce `spec-gen` input. `specgen=F` produces the original output data suitable for processing with `plot-mcdspectrum`.
 
 2026-10: The MCD C-terms are now printed in the data files including
 the factor of 1/kT. The code `plot-mcdspectrum` was adapted,
